@@ -1,13 +1,15 @@
 package api
 
 import (
+	"context"
 	"gocourse/config"
-	"gocourse/handlers/createUser"
-	"gocourse/handlers/deleteUser"
-	"gocourse/handlers/getAllUsers"
-	"gocourse/handlers/getUser"
-	"gocourse/handlers/updateUser"
-	"gocourse/middleware"
+	"gocourse/internal/database"
+	"gocourse/internal/handlers/user/createUser"
+	"gocourse/internal/handlers/user/deleteUser"
+	"gocourse/internal/handlers/user/getAllUsers"
+	"gocourse/internal/handlers/user/getUser"
+	"gocourse/internal/handlers/user/updateUser"
+	"gocourse/internal/middleware"
 	"log/slog"
 	"net/http"
 	"os"
@@ -21,33 +23,38 @@ const (
 
 type APIServer struct {
 	address string
-	dbURI   string
+	dbUrl   string
 }
 
-func NewAPIServer(address string) *APIServer {
-	return &APIServer{address: address}
+func NewAPIServer(address string, dbUrl string) *APIServer {
+	return &APIServer{address: address, dbUrl: dbUrl}
 }
 
 func (s *APIServer) Run(cfg *config.Config) error {
-	log := setupLogger("local")
+	log := setupLogger(cfg.Env)
 
 	router := http.NewServeMux()
+
+	storage := database.NewDbPool(context.Background(), s.dbUrl, log)
+	log.Info("Database connected")
+	defer log.Info("Database disconnected")
+	defer storage.Close()
 
 	mainMiddlewareStack := middleware.CreateStack(
 		middleware.RequestLoggerMiddleware(log),
 	)
 
-	router.HandleFunc("GET /users/{userID}", getUser.New(log))
-	router.HandleFunc("GET /users", getAllUsers.New(log))
-	router.HandleFunc("POST /users", createUser.New(log))
-	router.HandleFunc("DELETE /users/{userID}", deleteUser.New(log))
-	router.HandleFunc("PUT /users/{userID}", updateUser.New(log))
+	router.HandleFunc("GET /users/{userID}", getUser.New(log, storage))
+	router.HandleFunc("GET /users", getAllUsers.New(log, storage))
+	router.HandleFunc("POST /users", createUser.New(log, storage))
+	router.HandleFunc("DELETE /users/{userID}", deleteUser.New(log, storage))
+	router.HandleFunc("PUT /users/{userID}", updateUser.New(log, storage))
 
 	v1 := http.NewServeMux()
 	v1MiddlewareStack := middleware.CreateStack(
 		middleware.RequireAuthMiddleware(log), // Мидлвейр для авторизации
 	)
-	v1.HandleFunc("POST /create-user", createUser.New(log))
+	v1.HandleFunc("POST /create-user", createUser.New(log, storage))
 
 	router.Handle("/v1/", http.StripPrefix("/v1", v1MiddlewareStack(v1)))
 

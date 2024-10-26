@@ -7,9 +7,18 @@ import (
 	"time"
 )
 
+type DATABASE struct {
+	Username string `yaml:"username" env-default:"postgres"`
+	Password string `yaml:"password" env-default:"admin"`
+	Host     string `yaml:"host" env-default:"localhost"`
+	Port     string `yaml:"port" env-default:"5432"`
+	DbName   string `yaml:"db_name" env-default:"postgres"`
+}
+
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server" env-required:"true"`
+	DATABASE   `yaml:"database" env-required:"true"`
 }
 
 type HTTPServer struct {

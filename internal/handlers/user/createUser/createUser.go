@@ -1,9 +1,11 @@
 package createUser
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/go-playground/validator/v10"
-	"gocourse/handlers/utils"
+	"gocourse/internal/database"
+	"gocourse/internal/utils"
 	"log/slog"
 	"net/http"
 )
@@ -19,7 +21,7 @@ type Response struct {
 	Username string `json:"username,omitempty"`
 }
 
-func New(log *slog.Logger) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Create user")
 
@@ -41,7 +43,12 @@ func New(log *slog.Logger) http.HandlerFunc {
 		}
 
 		//create user in db
-		// TODO бизнес логика создание юзера
+		err = storage.CreateUser(context.Background(), log, req.Username, req.Password)
+		if err != nil {
+			log.Error("failed to create user", slog.String("error", err.Error()))
+			utils.SendError(w, err.Error())
+			return
+		}
 
 		//send response
 		utils.Send(w, Response{
