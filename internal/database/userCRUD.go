@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"log/slog"
 	"strings"
 	"time"
 )
@@ -73,7 +72,6 @@ func (pg *Dbpool) UpdateUser(ctx context.Context, user UserDTO) error {
 	}
 
 	query += strings.Join(setClauses, ", ") + " WHERE id = @id"
-	slog.Info(query)
 
 	_, err := pg.db.Exec(ctx, query, args)
 	if err != nil {
