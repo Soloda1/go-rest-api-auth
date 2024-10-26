@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"os"
@@ -34,7 +33,9 @@ func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *Dbpool {
 		CREATE TABLE IF NOT EXISTS users (
 		    id serial PRIMARY KEY,
 		    username VARCHAR(30) NOT NULL UNIQUE ,
-		    password VARCHAR(255) NOT NULL
+		    password VARCHAR(255) NOT NULL,
+		    description TEXT DEFAULT '',
+		    date_joined DATE DEFAULT CURRENT_DATE
 		)
 	`
 		_, err := pgInstance.db.Exec(ctx, query)
@@ -47,82 +48,6 @@ func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *Dbpool {
 	}()
 
 	return pgInstance
-}
-
-func (pg *Dbpool) CreateUser(ctx context.Context, log *slog.Logger, username, password string) error {
-	query := `INSERT INTO users (username, password) VALUES (@username, @password)`
-	args := pgx.NamedArgs{
-		"username": username,
-		"password": password,
-	}
-	_, err := pg.db.Exec(ctx, query, args)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (pg *Dbpool) DeleteUser(ctx context.Context, userID int) error {
-	query := `DELETE FROM users WHERE id = @id`
-	args := pgx.NamedArgs{
-		"id": userID,
-	}
-	_, err := pg.db.Exec(ctx, query, args)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (pg *Dbpool) UpdateUser(ctx context.Context, user UserDTO) error {
-	var query string
-	args := pgx.NamedArgs{
-		"id": user.UserID,
-	}
-	if user.Password == "" {
-		query = `UPDATE users SET username = @username WHERE id = @id`
-		args["username"] = user.Username
-	} else if user.Username == "" {
-		query = `UPDATE users SET password = @password WHERE id = @id`
-		args["password"] = user.Password
-	} else {
-		query = `UPDATE users SET username = @username, password = @password  WHERE id = @id`
-		args["username"] = user.Username
-		args["password"] = user.Password
-	}
-
-	_, err := pg.db.Exec(ctx, query, args)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (pg *Dbpool) GetUser(ctx context.Context, userID int) (UserDTO, error) {
-	query := `SELECT id,username,password FROM users WHERE id = @id`
-	args := pgx.NamedArgs{
-		"id": userID,
-	}
-	row := pg.db.QueryRow(ctx, query, args)
-	user := UserDTO{}
-	err := row.Scan(&user.UserID, &user.Username, &user.Password)
-	if err != nil {
-		return UserDTO{}, err
-	}
-
-	return user, nil
-}
-
-func (pg *Dbpool) GetALlUsers(ctx context.Context) ([]UserDTO, error) {
-	query := `SELECT id,username,password FROM users`
-
-	rows, err := pg.db.Query(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	return pgx.CollectRows(rows, pgx.RowToStructByPos[UserDTO])
 }
 
 func (pg *Dbpool) Ping(ctx context.Context) error {

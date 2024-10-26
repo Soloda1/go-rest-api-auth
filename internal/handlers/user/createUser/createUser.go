@@ -11,14 +11,15 @@ import (
 )
 
 type Request struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Username    string `json:"username" validate:"required"`
+	Password    string `json:"password" validate:"required"`
+	Description string `json:"description"`
 }
 
 type Response struct {
-	Status   string `json:"status"`
-	Error    string `json:"error,omitempty"`
-	Username string `json:"username,omitempty"`
+	Status string           `json:"status"`
+	Error  string           `json:"error,omitempty"`
+	User   database.UserDTO `json:"user"`
 }
 
 func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
@@ -43,7 +44,12 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 		}
 
 		//create user in db
-		err = storage.CreateUser(context.Background(), log, req.Username, req.Password)
+		userDto := database.UserDTO{
+			Username:    req.Username,
+			Password:    req.Password,
+			Description: req.Description,
+		}
+		createdUser, err := storage.CreateUser(context.Background(), userDto)
 		if err != nil {
 			log.Error("failed to create user", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())
@@ -52,8 +58,14 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 
 		//send response
 		utils.Send(w, Response{
-			Status:   http.StatusText(http.StatusOK),
-			Username: req.Username,
+			Status: http.StatusText(http.StatusOK),
+			User: database.UserDTO{
+				Id:          createdUser.Id,
+				Username:    createdUser.Username,
+				Password:    createdUser.Password,
+				Description: createdUser.Description,
+				DateJoined:  createdUser.DateJoined,
+			},
 		})
 	}
 }

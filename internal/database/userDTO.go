@@ -1,7 +1,11 @@
 package database
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type UserDTO struct {
-	UserID   int
-	Username string
-	Password string
+	Id          int
+	Username    string
+	Password    string
+	Description string
+	DateJoined  pgtype.Date
 }

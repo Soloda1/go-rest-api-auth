@@ -12,15 +12,15 @@ import (
 )
 
 type Request struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Description string `json:"description"`
 }
 
 type Response struct {
-	Status   string `json:"status"`
-	Error    string `json:"error,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	Status string           `json:"status"`
+	Error  string           `json:"error,omitempty"`
+	User   database.UserDTO `json:"user"`
 }
 
 func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
@@ -34,7 +34,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		_, err = storage.GetUser(context.Background(), userID)
+		user, err := storage.GetUser(context.Background(), userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")
@@ -51,7 +51,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 		}
 
 		//validating request body info
-		if req.Username == "" && req.Password == "" {
+		if req.Username == "" && req.Password == "" && req.Description == "" {
 			log.Error("Empty request data")
 			utils.SendError(w, "Empty request data")
 			return
@@ -64,8 +64,13 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			}
 		}
 
-		user := database.UserDTO{userID, req.Username, req.Password}
-		err = storage.UpdateUser(context.Background(), user)
+		userDto := database.UserDTO{
+			Id:          userID,
+			Username:    req.Username,
+			Password:    req.Password,
+			Description: req.Description,
+		}
+		err = storage.UpdateUser(context.Background(), userDto)
 		if err != nil {
 			log.Error("failed to update user", slog.String("user_id", r.PathValue("userID")), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())
@@ -73,9 +78,14 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 		}
 
 		utils.Send(w, Response{
-			Status:   http.StatusText(http.StatusOK),
-			Username: req.Username,
-			Password: req.Password,
+			Status: http.StatusText(http.StatusOK),
+			User: database.UserDTO{
+				Id:          userID,
+				Username:    utils.CoalesceString(req.Username, user.Username),
+				Password:    utils.CoalesceString(req.Password, user.Password),
+				Description: utils.CoalesceString(req.Description, user.Description),
+				DateJoined:  user.DateJoined,
+			},
 		})
 	}
 }
