@@ -62,7 +62,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		CREATE TABLE IF NOT EXISTS posts (
 			id SERIAL PRIMARY KEY,
 			title VARCHAR(255) NOT NULL,
-			content TEXT,
+			content TEXT DEFAULT '',
 			user_id INTEGER NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
