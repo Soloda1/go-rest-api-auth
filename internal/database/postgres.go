@@ -99,7 +99,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		<-done
 		<-done
 		query := `
-		CREATE TABLE IF NOT EXISTS post_tags (
+		CREATE TABLE IF NOT EXISTS posts_tags (
 			post_id INTEGER NOT NULL,
 			tag_id INTEGER NOT NULL,
 			PRIMARY KEY (post_id, tag_id),

@@ -6,3 +6,10 @@ func CoalesceString(a, b string) string {
 	}
 	return b
 }
+
+func CoalesceSliceStrings(a, b []string) []string {
+	if a != nil {
+		return a
+	}
+	return b
+}

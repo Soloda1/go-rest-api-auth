@@ -4,11 +4,61 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"log/slog"
+	"os"
+	"slices"
 	"strings"
 	"time"
 )
 
+//TODO добавить логи во всю бд все таки
+
+func CreateTagsToPost(ctx context.Context, pg *Dbpool, post *PostDTO, tags []string, removeAll bool) {
+	tagsChan := make(chan TagsDTO, len(tags))
+
+	if removeAll == true {
+		err := pg.DeletePostTagsRelation(ctx, post.Id)
+		if err != nil {
+			slog.Error("error in in delete tags gorutine", slog.String("err", err.Error()))
+			os.Exit(1) //TODO как то исправить  чтоб при ошибке не вырубался сервер
+			return
+		}
+	}
+
+	for _, tag := range tags {
+		go func() {
+			tagDTO, err := pg.GetTag(ctx, tag)
+			if err != nil {
+				tagDTO, err = pg.CreateTag(ctx, TagsDTO{Name: tag})
+				if err != nil {
+					slog.Error("error in create tag", slog.String("err", err.Error()))
+					os.Exit(1) //TODO как то исправить  чтоб при ошибке не вырубался сервер
+					return
+				}
+			}
+			tagsChan <- tagDTO
+		}()
+	}
+
+	for range tags {
+		tag := <-tagsChan
+		if !slices.Contains(post.Tags, tag.Name) {
+			post.Tags = append(post.Tags, tag.Name)
+			go func() {
+				err := pg.CreatePostTagsRelation(ctx, tag, *post)
+				if err != nil {
+					slog.Error("error in create relation post tags", slog.String("err", err.Error()))
+					os.Exit(1) //TODO как то исправить  чтоб при ошибке не вырубался сервер
+					return
+				}
+			}()
+		}
+	}
+}
+
 func (pg *Dbpool) CreatePost(ctx context.Context, post PostDTO) (PostDTO, error) {
+	var createdPost PostDTO
+
 	createdAt := pgtype.Timestamp{
 		Time:  time.Now(), // Текущая дата, время будет проигнорировано
 		Valid: true,       // Отмечаем, что значение установлено
@@ -23,7 +73,6 @@ func (pg *Dbpool) CreatePost(ctx context.Context, post PostDTO) (PostDTO, error)
 
 	query := `INSERT INTO posts (title, content, user_id, created_at) VALUES (@title, @content, @user_id, @created_at) RETURNING id, title, content, user_id, created_at`
 
-	var createdPost PostDTO
 	err := pg.db.QueryRow(ctx, query, args).Scan(
 		&createdPost.Id,
 		&createdPost.Title,
@@ -33,6 +82,10 @@ func (pg *Dbpool) CreatePost(ctx context.Context, post PostDTO) (PostDTO, error)
 	)
 	if err != nil {
 		return PostDTO{}, err
+	}
+
+	if post.Tags != nil {
+		CreateTagsToPost(ctx, pg, &createdPost, post.Tags, false)
 	}
 
 	return createdPost, nil
@@ -62,6 +115,9 @@ func (pg *Dbpool) UpdatePost(ctx context.Context, post PostDTO) error {
 	if post.Content != "" {
 		setClauses = append(setClauses, "content = @content")
 		args["content"] = post.Content
+	}
+	if post.Tags != nil {
+		CreateTagsToPost(ctx, pg, &PostDTO{Id: post.Id, Tags: nil}, post.Tags, true)
 	}
 
 	query += strings.Join(setClauses, ", ") + " WHERE id = @id"

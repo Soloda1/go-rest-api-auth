@@ -8,4 +8,5 @@ type PostDTO struct {
 	Content   string
 	UserId    int
 	CreatedAt pgtype.Timestamp
+	Tags      []string
 }

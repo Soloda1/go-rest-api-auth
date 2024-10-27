@@ -12,8 +12,9 @@ import (
 )
 
 type Request struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Tags    []string `json:"tags"`
 }
 
 type Response struct {
@@ -50,7 +51,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 		}
 
 		//validating request body info
-		if req.Title == "" && req.Content == "" {
+		if req.Title == "" && req.Content == "" && req.Tags == nil {
 			log.Error("Empty request data")
 			utils.SendError(w, "Empty request data")
 			return
@@ -67,6 +68,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			Id:      postID,
 			Title:   req.Title,
 			Content: req.Content,
+			Tags:    req.Tags,
 		}
 		err = storage.UpdatePost(context.Background(), postDto)
 		if err != nil {
@@ -83,6 +85,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 				Content:   utils.CoalesceString(req.Content, post.Content),
 				UserId:    post.UserId,
 				CreatedAt: post.CreatedAt,
+				Tags:      utils.CoalesceSliceStrings(req.Tags, post.Tags),
 			},
 		})
 	}

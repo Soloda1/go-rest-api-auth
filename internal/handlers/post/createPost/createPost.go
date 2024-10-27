@@ -11,8 +11,9 @@ import (
 )
 
 type Request struct {
-	Title   string `json:"title" validate:"required"`
-	Content string `json:"content,omitempty"`
+	Title   string   `json:"title" validate:"required"`
+	Content string   `json:"content,omitempty"`
+	Tags    []string `json:"tags,omitempty"`
 }
 
 type Response struct {
@@ -53,6 +54,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			Title:   req.Title,
 			Content: req.Content,
 			UserId:  userID,
+			Tags:    req.Tags,
 		}
 		createdPost, err := storage.CreatePost(context.Background(), postDto)
 		if err != nil {
@@ -70,6 +72,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 				Content:   createdPost.Content,
 				UserId:    userID,
 				CreatedAt: createdPost.CreatedAt,
+				Tags:      createdPost.Tags,
 			},
 		})
 	}
