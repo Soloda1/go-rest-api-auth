@@ -1,8 +1,11 @@
 package middleware
 
 import (
+	"context"
+	"gocourse/internal/utils"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -52,11 +55,29 @@ func RequireAuthMiddleware(log *slog.Logger) func(next http.Handler) http.Handle
 			token := r.Header.Get("Authorization")
 			log.Debug("Token", slog.String("token", token))
 			if token != "Bearer token" {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				utils.SendError(w, "Unauthorized token")
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			// Ищем куку с user_id
+			cookie, err := r.Cookie("user_id")
+			if err != nil {
+				utils.SendError(w, "Unauthorized cookies")
+				return
+			}
+			//log.Debug("Cookie", slog.Any("cookie", cookie))
+
+			// Преобразуем значение куки в int
+			userID, err := strconv.Atoi(cookie.Value)
+			if err != nil {
+				utils.SendError(w, "Unauthorized cookies user id")
+				return
+			}
+			//log.Debug("UserID", slog.Any("userID", userID))
+
+			// Добавляем user_id в контекст
+			ctx := context.WithValue(r.Context(), "user_id", userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)

@@ -1,0 +1,41 @@
+package getPost
+
+import (
+	"context"
+	"gocourse/internal/database"
+	"gocourse/internal/utils"
+	"log/slog"
+	"net/http"
+	"strconv"
+)
+
+type Response struct {
+	Status string           `json:"status"`
+	Error  string           `json:"error,omitempty"`
+	Post   database.PostDTO `json:"post"`
+}
+
+func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Info("get one post")
+
+		postID, err := strconv.Atoi(r.PathValue("postID"))
+		if err != nil {
+			log.Error("Invalid post id", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
+			utils.SendError(w, "Invalid post id")
+			return
+		}
+
+		post, err := storage.GetPost(context.Background(), postID)
+		if err != nil {
+			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
+			utils.SendError(w, "post not found")
+			return
+		}
+
+		utils.Send(w, Response{
+			Status: http.StatusText(http.StatusOK),
+			Post:   post,
+		})
+	}
+}

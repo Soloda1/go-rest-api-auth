@@ -4,6 +4,11 @@ import (
 	"context"
 	"gocourse/config"
 	"gocourse/internal/database"
+	"gocourse/internal/handlers/post/createPost"
+	"gocourse/internal/handlers/post/deletePost"
+	"gocourse/internal/handlers/post/getAllPosts"
+	"gocourse/internal/handlers/post/getPost"
+	"gocourse/internal/handlers/post/updatePost"
 	"gocourse/internal/handlers/user/createUser"
 	"gocourse/internal/handlers/user/deleteUser"
 	"gocourse/internal/handlers/user/getAllUsers"
@@ -54,7 +59,11 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	v1MiddlewareStack := middleware.CreateStack(
 		middleware.RequireAuthMiddleware(log), // Мидлвейр для авторизации
 	)
-	v1.HandleFunc("POST /create-user", createUser.New(log, storage))
+	v1.HandleFunc("POST /posts", createPost.New(log, storage))
+	v1.HandleFunc("GET /posts", getAllPosts.New(log, storage))
+	v1.HandleFunc("GET /posts/{postID}", getPost.New(log, storage))
+	v1.HandleFunc("PUT /posts/{postID}", updatePost.New(log, storage))
+	v1.HandleFunc("DELETE /posts/{postID}", deletePost.New(log, storage))
 
 	router.Handle("/v1/", http.StripPrefix("/v1", v1MiddlewareStack(v1)))
 
