@@ -5,6 +5,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"gocourse/internal/utils"
+	"log/slog"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,14 +19,15 @@ type UserDTO struct {
 	DateJoined  pgtype.Date
 }
 
-func (pg *Dbpool) CreateUser(ctx context.Context, user UserDTO) (UserDTO, error) {
+func (pg *Dbpool) CreateUser(ctx context.Context, log *slog.Logger, user UserDTO) (UserDTO, error) {
 	dateJoined := pgtype.Date{
 		Time:  time.Now(), // Текущая дата, время будет проигнорировано
 		Valid: true,       // Отмечаем, что значение установлено
 	}
 
-	err, hashedPassword := utils.HashPassword(user.Password)
+	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
+		log.Error("Error hashing password in create user in database", slog.String("password", user.Password))
 		return UserDTO{}, err
 	}
 
@@ -49,25 +52,27 @@ func (pg *Dbpool) CreateUser(ctx context.Context, user UserDTO) (UserDTO, error)
 		&createdUser.DateJoined,
 	)
 	if err != nil {
+		log.Error("Error creating new user in database", slog.String("username", user.Username))
 		return UserDTO{}, err
 	}
 
 	return createdUser, nil
 }
 
-func (pg *Dbpool) DeleteUser(ctx context.Context, userID int) error {
+func (pg *Dbpool) DeleteUser(ctx context.Context, log *slog.Logger, userID int) error {
 	query := `DELETE FROM users WHERE id = @id`
 	args := pgx.NamedArgs{
 		"id": userID,
 	}
 	_, err := pg.db.Exec(ctx, query, args)
 	if err != nil {
+		log.Error("Error deleting user from database", slog.String("user_id", strconv.Itoa(userID)))
 		return err
 	}
 	return nil
 }
 
-func (pg *Dbpool) UpdateUser(ctx context.Context, user UserDTO) error {
+func (pg *Dbpool) UpdateUser(ctx context.Context, log *slog.Logger, user UserDTO) error {
 	query := `UPDATE users SET `
 	var setClauses []string
 	args := pgx.NamedArgs{"id": user.Id}
@@ -78,8 +83,9 @@ func (pg *Dbpool) UpdateUser(ctx context.Context, user UserDTO) error {
 	}
 	if user.Password != "" {
 		setClauses = append(setClauses, "password = @password")
-		err, hashedPassword := utils.HashPassword(user.Password)
+		hashedPassword, err := utils.HashPassword(user.Password)
 		if err != nil {
+			log.Error("Error hashing password in update user in database", slog.String("password", user.Password))
 			return err
 		}
 		args["password"] = hashedPassword
@@ -93,12 +99,13 @@ func (pg *Dbpool) UpdateUser(ctx context.Context, user UserDTO) error {
 
 	_, err := pg.db.Exec(ctx, query, args)
 	if err != nil {
+		log.Error("Error updating user in database", slog.String("user_id", strconv.Itoa(user.Id)))
 		return err
 	}
 	return nil
 }
 
-func (pg *Dbpool) GetUser(ctx context.Context, userID int) (UserDTO, error) {
+func (pg *Dbpool) GetUser(ctx context.Context, log *slog.Logger, userID int) (UserDTO, error) {
 	query := `SELECT id,username,password,description,date_joined FROM users WHERE id = @id`
 	args := pgx.NamedArgs{
 		"id": userID,
@@ -107,17 +114,19 @@ func (pg *Dbpool) GetUser(ctx context.Context, userID int) (UserDTO, error) {
 	user := UserDTO{}
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Description, &user.DateJoined)
 	if err != nil {
+		log.Error("Error getting user from database", slog.String("user_id", strconv.Itoa(userID)))
 		return UserDTO{}, err
 	}
 
 	return user, nil
 }
 
-func (pg *Dbpool) GetALlUsers(ctx context.Context) ([]UserDTO, error) {
+func (pg *Dbpool) GetALlUsers(ctx context.Context, log *slog.Logger) ([]UserDTO, error) {
 	query := `SELECT id,username,password,description,date_joined FROM users`
 
 	rows, err := pg.db.Query(ctx, query)
 	if err != nil {
+		log.Error("Error getting all users from database")
 		return nil, err
 	}
 	defer rows.Close()

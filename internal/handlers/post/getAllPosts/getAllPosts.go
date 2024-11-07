@@ -18,7 +18,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get all posts")
 
-		posts, err := storage.GetALlPosts(context.Background())
+		posts, err := storage.GetALlPosts(context.Background(), log)
 		if err != nil {
 			log.Error("get all posts failed", slog.String("error", err.Error()))
 			utils.SendError(w, "get all posts failed")

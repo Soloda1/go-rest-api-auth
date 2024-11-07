@@ -49,7 +49,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			Password:    req.Password,
 			Description: req.Description,
 		}
-		createdUser, err := storage.CreateUser(context.Background(), userDto)
+		createdUser, err := storage.CreateUser(context.Background(), log, userDto)
 		if err != nil {
 			log.Error("failed to create user", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

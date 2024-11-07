@@ -26,14 +26,14 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		_, err = storage.GetPost(context.Background(), postID)
+		_, err = storage.GetPost(context.Background(), log, postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")
 			return
 		}
 
-		err = storage.DeletePost(context.Background(), postID)
+		err = storage.DeletePost(context.Background(), log, postID)
 		if err != nil {
 			log.Error("Error deleting post", slog.String("post_id", r.PathValue("postID")), slog.String("error", err.Error()))
 			utils.SendError(w, "Error deleting post")

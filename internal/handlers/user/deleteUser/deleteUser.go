@@ -26,14 +26,14 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		_, err = storage.GetUser(context.Background(), userID)
+		_, err = storage.GetUser(context.Background(), log, userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")
 			return
 		}
 
-		err = storage.DeleteUser(context.Background(), userID)
+		err = storage.DeleteUser(context.Background(), log, userID)
 		if err != nil {
 			log.Error("Error deleting user", slog.String("user_id", r.PathValue("userID")), slog.String("error", err.Error()))
 			utils.SendError(w, "Error deleting user")

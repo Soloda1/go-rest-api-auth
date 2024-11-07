@@ -56,7 +56,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			UserId:  userID,
 			Tags:    req.Tags,
 		}
-		createdPost, err := storage.CreatePost(context.Background(), postDto)
+		createdPost, err := storage.CreatePost(context.Background(), log, postDto)
 		if err != nil {
 			log.Error("failed to create post", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

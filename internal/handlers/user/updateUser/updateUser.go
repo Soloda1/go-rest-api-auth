@@ -34,7 +34,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		user, err := storage.GetUser(context.Background(), userID)
+		user, err := storage.GetUser(context.Background(), log, userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")
@@ -70,7 +70,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			Password:    req.Password,
 			Description: req.Description,
 		}
-		err = storage.UpdateUser(context.Background(), userDto)
+		err = storage.UpdateUser(context.Background(), log, userDto)
 		if err != nil {
 			log.Error("failed to update user", slog.String("user_id", r.PathValue("userID")), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

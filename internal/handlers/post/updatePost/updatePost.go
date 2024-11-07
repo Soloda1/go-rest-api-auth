@@ -34,7 +34,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		post, err := storage.GetPost(context.Background(), postID)
+		post, err := storage.GetPost(context.Background(), log, postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")
@@ -70,7 +70,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			Content: req.Content,
 			Tags:    req.Tags,
 		}
-		err = storage.UpdatePost(context.Background(), postDto)
+		err = storage.UpdatePost(context.Background(), log, postDto)
 		if err != nil {
 			log.Error("failed to update post", slog.String("post_id", r.PathValue("postID")), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

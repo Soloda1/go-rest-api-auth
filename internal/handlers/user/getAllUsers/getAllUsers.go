@@ -18,7 +18,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get all users")
 
-		users, err := storage.GetALlUsers(context.Background())
+		users, err := storage.GetALlUsers(context.Background(), log)
 		if err != nil {
 			log.Error("get all users failed", slog.String("error", err.Error()))
 			utils.SendError(w, "get all users failed")

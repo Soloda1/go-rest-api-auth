@@ -4,9 +4,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func HashPassword(password string) (error, string) {
+func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	return err, string(bytes)
+	return string(bytes), err
 }
 
 func CheckPasswordHash(password, hash string) bool {
