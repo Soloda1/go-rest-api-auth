@@ -4,9 +4,18 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"gocourse/internal/utils"
 	"strings"
 	"time"
 )
+
+type UserDTO struct {
+	Id          int
+	Username    string
+	Password    string
+	Description string
+	DateJoined  pgtype.Date
+}
 
 func (pg *Dbpool) CreateUser(ctx context.Context, user UserDTO) (UserDTO, error) {
 	dateJoined := pgtype.Date{
@@ -14,9 +23,14 @@ func (pg *Dbpool) CreateUser(ctx context.Context, user UserDTO) (UserDTO, error)
 		Valid: true,       // Отмечаем, что значение установлено
 	}
 
+	err, hashedPassword := utils.HashPassword(user.Password)
+	if err != nil {
+		return UserDTO{}, err
+	}
+
 	args := pgx.NamedArgs{
 		"username":   user.Username,
-		"password":   user.Password,
+		"password":   hashedPassword,
 		"dateJoined": dateJoined,
 	}
 	var query string
@@ -27,7 +41,7 @@ func (pg *Dbpool) CreateUser(ctx context.Context, user UserDTO) (UserDTO, error)
 		query = `INSERT INTO users (username, password, description, date_joined) VALUES (@username, @password, @description, @dateJoined) RETURNING id, username, password, description, date_joined`
 	}
 	var createdUser UserDTO
-	err := pg.db.QueryRow(ctx, query, args).Scan(
+	err = pg.db.QueryRow(ctx, query, args).Scan(
 		&createdUser.Id,
 		&createdUser.Username,
 		&createdUser.Password,
@@ -64,7 +78,11 @@ func (pg *Dbpool) UpdateUser(ctx context.Context, user UserDTO) error {
 	}
 	if user.Password != "" {
 		setClauses = append(setClauses, "password = @password")
-		args["password"] = user.Password
+		err, hashedPassword := utils.HashPassword(user.Password)
+		if err != nil {
+			return err
+		}
+		args["password"] = hashedPassword
 	}
 	if user.Description != "" {
 		setClauses = append(setClauses, "description = @description")

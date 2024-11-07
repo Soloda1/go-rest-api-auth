@@ -5,6 +5,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+type TagsDTO struct {
+	Id   int
+	Name string
+}
+
 func (pg *Dbpool) CreateTag(ctx context.Context, tag TagsDTO) (TagsDTO, error) {
 	args := pgx.NamedArgs{"name": tag.Name}
 

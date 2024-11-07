@@ -11,6 +11,15 @@ import (
 	"time"
 )
 
+type PostDTO struct {
+	Id        int
+	Title     string
+	Content   string
+	UserId    int
+	CreatedAt pgtype.Timestamp
+	Tags      []string
+}
+
 //TODO добавить логи во всю бд все таки
 
 func CreateTagsToPost(ctx context.Context, pg *Dbpool, post *PostDTO, tags []string, removeAll bool) {
@@ -60,8 +69,8 @@ func (pg *Dbpool) CreatePost(ctx context.Context, post PostDTO) (PostDTO, error)
 	var createdPost PostDTO
 
 	createdAt := pgtype.Timestamp{
-		Time:  time.Now(), // Текущая дата, время будет проигнорировано
-		Valid: true,       // Отмечаем, что значение установлено
+		Time:  time.Now(),
+		Valid: true,
 	}
 
 	args := pgx.NamedArgs{
