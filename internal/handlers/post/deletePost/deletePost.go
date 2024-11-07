@@ -1,7 +1,6 @@
 package deletePost
 
 import (
-	"context"
 	"gocourse/internal/database"
 	"gocourse/internal/utils"
 	"log/slog"
@@ -15,7 +14,7 @@ type Response struct {
 	PostID int    `json:"post_id,omitempty"`
 }
 
-func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Delete post")
 
@@ -26,14 +25,14 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		_, err = storage.GetPost(context.Background(), log, postID)
+		_, err = storage.GetPost(postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")
 			return
 		}
 
-		err = storage.DeletePost(context.Background(), log, postID)
+		err = storage.DeletePost(postID)
 		if err != nil {
 			log.Error("Error deleting post", slog.String("post_id", r.PathValue("postID")), slog.String("error", err.Error()))
 			utils.SendError(w, "Error deleting post")

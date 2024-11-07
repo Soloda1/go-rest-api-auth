@@ -1,7 +1,6 @@
 package updateUser
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/go-playground/validator/v10"
 	"gocourse/internal/database"
@@ -23,7 +22,7 @@ type Response struct {
 	User   database.UserDTO `json:"user"`
 }
 
-func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Update user")
 
@@ -34,7 +33,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		user, err := storage.GetUser(context.Background(), log, userID)
+		user, err := storage.GetUser(userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")
@@ -70,7 +69,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			Password:    req.Password,
 			Description: req.Description,
 		}
-		err = storage.UpdateUser(context.Background(), log, userDto)
+		err = storage.UpdateUser(userDto)
 		if err != nil {
 			log.Error("failed to update user", slog.String("user_id", r.PathValue("userID")), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

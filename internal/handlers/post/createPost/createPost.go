@@ -1,7 +1,6 @@
 package createPost
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/go-playground/validator/v10"
 	"gocourse/internal/database"
@@ -22,7 +21,7 @@ type Response struct {
 	Post   database.PostDTO `json:"post"`
 }
 
-func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Create Post")
 
@@ -56,7 +55,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			UserId:  userID,
 			Tags:    req.Tags,
 		}
-		createdPost, err := storage.CreatePost(context.Background(), log, postDto)
+		createdPost, err := storage.CreatePost(postDto)
 		if err != nil {
 			log.Error("failed to create post", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

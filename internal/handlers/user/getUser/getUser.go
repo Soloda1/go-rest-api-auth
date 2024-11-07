@@ -1,7 +1,6 @@
 package getUser
 
 import (
-	"context"
 	"gocourse/internal/database"
 	"gocourse/internal/utils"
 	"log/slog"
@@ -15,7 +14,7 @@ type Response struct {
 	User   database.UserDTO `json:"user,omitempty"`
 }
 
-func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get one user")
 
@@ -26,7 +25,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		user, err := storage.GetUser(context.Background(), log, userID)
+		user, err := storage.GetUser(userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")

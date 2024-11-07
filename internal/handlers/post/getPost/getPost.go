@@ -1,7 +1,6 @@
 package getPost
 
 import (
-	"context"
 	"gocourse/internal/database"
 	"gocourse/internal/utils"
 	"log/slog"
@@ -15,7 +14,7 @@ type Response struct {
 	Post   database.PostDTO `json:"post"`
 }
 
-func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get one post")
 
@@ -26,7 +25,7 @@ func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
 			return
 		}
 
-		post, err := storage.GetPost(context.Background(), log, postID)
+		post, err := storage.GetPost(postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")

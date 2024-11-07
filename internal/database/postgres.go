@@ -8,16 +8,18 @@ import (
 	"sync"
 )
 
-type Dbpool struct {
-	db *pgxpool.Pool
+type DbPool struct {
+	db  *pgxpool.Pool
+	ctx context.Context
+	log *slog.Logger
 }
 
 var (
-	pgInstance *Dbpool
+	pgInstance *DbPool
 	pgOnce     sync.Once
 )
 
-func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *Dbpool {
+func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *DbPool {
 	pgOnce.Do(func() {
 		db, err := pgxpool.New(ctx, dbUrl)
 		if err != nil {
@@ -25,7 +27,11 @@ func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *Dbpool {
 			os.Exit(1)
 		}
 
-		pgInstance = &Dbpool{db}
+		pgInstance = &DbPool{
+			db:  db,
+			ctx: ctx,
+			log: log,
+		}
 	})
 
 	go SetupTables(ctx, log)
@@ -119,10 +125,10 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 
 }
 
-func (pg *Dbpool) Ping(ctx context.Context) error {
+func (pg *DbPool) Ping(ctx context.Context) error {
 	return pg.db.Ping(ctx)
 }
 
-func (pg *Dbpool) Close() {
+func (pg *DbPool) Close() {
 	pg.db.Close()
 }

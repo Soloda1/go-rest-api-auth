@@ -1,7 +1,6 @@
 package getAllPosts
 
 import (
-	"context"
 	"gocourse/internal/database"
 	"gocourse/internal/utils"
 	"log/slog"
@@ -14,11 +13,11 @@ type Response struct {
 	Posts  []database.PostDTO `json:"posts"`
 }
 
-func New(log *slog.Logger, storage *database.Dbpool) http.HandlerFunc {
+func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get all posts")
 
-		posts, err := storage.GetALlPosts(context.Background(), log)
+		posts, err := storage.GetALlPosts()
 		if err != nil {
 			log.Error("get all posts failed", slog.String("error", err.Error()))
 			utils.SendError(w, "get all posts failed")
