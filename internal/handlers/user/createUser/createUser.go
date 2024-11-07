@@ -21,7 +21,7 @@ type Response struct {
 	User   database.UserDTO `json:"user"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Create user")
 
@@ -48,7 +48,7 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			Password:    req.Password,
 			Description: req.Description,
 		}
-		createdUser, err := storage.CreateUser(userDto)
+		createdUser, err := service.CreateUser(userDto)
 		if err != nil {
 			log.Error("failed to create user", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

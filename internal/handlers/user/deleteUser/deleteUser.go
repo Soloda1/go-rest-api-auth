@@ -14,7 +14,7 @@ type Response struct {
 	UserID int    `json:"user_id,omitempty"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Delete user")
 
@@ -25,14 +25,14 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			return
 		}
 
-		_, err = storage.GetUser(userID)
+		_, err = service.GetUser(userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")
 			return
 		}
 
-		err = storage.DeleteUser(userID)
+		err = service.DeleteUser(userID)
 		if err != nil {
 			log.Error("Error deleting user", slog.String("user_id", r.PathValue("userID")), slog.String("error", err.Error()))
 			utils.SendError(w, "Error deleting user")

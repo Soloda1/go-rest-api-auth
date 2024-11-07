@@ -14,7 +14,7 @@ type Response struct {
 	PostID int    `json:"post_id,omitempty"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Delete post")
 
@@ -25,14 +25,14 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			return
 		}
 
-		_, err = storage.GetPost(postID)
+		_, err = service.GetPost(postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")
 			return
 		}
 
-		err = storage.DeletePost(postID)
+		err = service.DeletePost(postID)
 		if err != nil {
 			log.Error("Error deleting post", slog.String("post_id", r.PathValue("postID")), slog.String("error", err.Error()))
 			utils.SendError(w, "Error deleting post")

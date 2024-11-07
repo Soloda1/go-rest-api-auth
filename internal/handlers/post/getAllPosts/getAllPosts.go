@@ -13,11 +13,11 @@ type Response struct {
 	Posts  []database.PostDTO `json:"posts"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get all posts")
 
-		posts, err := storage.GetALlPosts()
+		posts, err := service.GetALlPosts()
 		if err != nil {
 			log.Error("get all posts failed", slog.String("error", err.Error()))
 			utils.SendError(w, "get all posts failed")

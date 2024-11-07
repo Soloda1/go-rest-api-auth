@@ -22,7 +22,7 @@ type Response struct {
 	Post   database.PostDTO `json:"post"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Update post")
 
@@ -33,7 +33,7 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			return
 		}
 
-		post, err := storage.GetPost(postID)
+		post, err := service.GetPost(postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")
@@ -69,7 +69,7 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			Content: req.Content,
 			Tags:    req.Tags,
 		}
-		err = storage.UpdatePost(postDto)
+		err = service.UpdatePost(postDto)
 		if err != nil {
 			log.Error("failed to update post", slog.String("post_id", r.PathValue("postID")), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

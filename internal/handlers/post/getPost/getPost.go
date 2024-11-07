@@ -14,7 +14,7 @@ type Response struct {
 	Post   database.PostDTO `json:"post"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("get one post")
 
@@ -25,7 +25,7 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			return
 		}
 
-		post, err := storage.GetPost(postID)
+		post, err := service.GetPost(postID)
 		if err != nil {
 			log.Error("post not found", slog.String("post_id", r.PathValue("postID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "post not found")

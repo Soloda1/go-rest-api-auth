@@ -41,6 +41,10 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	router := http.NewServeMux()
 
 	storage := database.NewDbPool(context.Background(), s.dbUrl, log)
+	TagsService := database.NewTagService(storage)
+	PostService := database.NewPostService(storage, TagsService)
+	UserService := database.NewUserService(storage)
+
 	log.Info("Database connected")
 	defer log.Info("Database disconnected")
 	defer storage.Close()
@@ -49,21 +53,22 @@ func (s *APIServer) Run(cfg *config.Config) error {
 		middleware.RequestLoggerMiddleware(log),
 	)
 
-	router.HandleFunc("GET /users/{userID}", getUser.New(log, storage))
-	router.HandleFunc("GET /users", getAllUsers.New(log, storage))
-	router.HandleFunc("POST /users", createUser.New(log, storage))
-	router.HandleFunc("DELETE /users/{userID}", deleteUser.New(log, storage))
-	router.HandleFunc("PUT /users/{userID}", updateUser.New(log, storage))
+	router.HandleFunc("GET /users/{userID}", getUser.New(log, UserService))
+	router.HandleFunc("GET /users", getAllUsers.New(log, UserService))
+	router.HandleFunc("POST /users", createUser.New(log, UserService))
+	router.HandleFunc("DELETE /users/{userID}", deleteUser.New(log, UserService))
+	router.HandleFunc("PUT /users/{userID}", updateUser.New(log, UserService))
 
 	v1 := http.NewServeMux()
 	v1MiddlewareStack := middleware.CreateStack(
 		middleware.RequireAuthMiddleware(log), // Мидлвейр для авторизации
 	)
-	v1.HandleFunc("POST /posts", createPost.New(log, storage))
-	v1.HandleFunc("GET /posts", getAllPosts.New(log, storage))
-	v1.HandleFunc("GET /posts/{postID}", getPost.New(log, storage))
-	v1.HandleFunc("PUT /posts/{postID}", updatePost.New(log, storage))
-	v1.HandleFunc("DELETE /posts/{postID}", deletePost.New(log, storage))
+
+	v1.HandleFunc("POST /posts", createPost.New(log, PostService))
+	v1.HandleFunc("GET /posts", getAllPosts.New(log, PostService))
+	v1.HandleFunc("GET /posts/{postID}", getPost.New(log, PostService))
+	v1.HandleFunc("PUT /posts/{postID}", updatePost.New(log, PostService))
+	v1.HandleFunc("DELETE /posts/{postID}", deletePost.New(log, PostService))
 
 	router.Handle("/v1/", http.StripPrefix("/v1", v1MiddlewareStack(v1)))
 

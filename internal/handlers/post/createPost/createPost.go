@@ -21,7 +21,7 @@ type Response struct {
 	Post   database.PostDTO `json:"post"`
 }
 
-func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
+func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Create Post")
 
@@ -55,7 +55,7 @@ func New(log *slog.Logger, storage *database.DbPool) http.HandlerFunc {
 			UserId:  userID,
 			Tags:    req.Tags,
 		}
-		createdPost, err := storage.CreatePost(postDto)
+		createdPost, err := service.CreatePost(postDto)
 		if err != nil {
 			log.Error("failed to create post", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())
