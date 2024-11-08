@@ -19,12 +19,19 @@ type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server" env-required:"true"`
 	DATABASE   `yaml:"database" env-required:"true"`
+	JWT        `yaml:"jwt" env-required:"true"`
 }
 
 type HTTPServer struct {
 	Address     string        `yaml:"address" env-default:"localhost:8000"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"5s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+}
+
+type JWT struct {
+	Secret           string        `yaml:"secret" env-default:"test-secret-key"`
+	AccessExpiresAt  time.Duration `yaml:"access_expires_at" env-default:"15m"`
+	RefreshExpiresAt time.Duration `yaml:"refresh_expires_at" env-default:"720h"`
 }
 
 func MustLoad() *Config {

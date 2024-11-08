@@ -2,10 +2,12 @@ package middleware
 
 import (
 	"context"
+	"gocourse/internal/database/auth"
 	"gocourse/internal/utils"
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -46,10 +48,10 @@ func RequestLoggerMiddleware(log *slog.Logger) func(next http.Handler) http.Hand
 	}
 }
 
-func RequireAuthMiddleware(log *slog.Logger) func(next http.Handler) http.Handler {
+func TestAuthMiddleware(log *slog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		log = log.With(slog.String("component", "middleware/RequireAuthMiddleware"))
-		log.Info("Auth middleware enabled")
+		log = log.With(slog.String("component", "middleware/TestAuthMiddleware"))
+		log.Info("TEST Auth middleware enabled")
 
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
@@ -77,6 +79,36 @@ func RequireAuthMiddleware(log *slog.Logger) func(next http.Handler) http.Handle
 
 			// Добавляем user_id в контекст
 			ctx := context.WithValue(r.Context(), "user_id", userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+
+		return http.HandlerFunc(fn)
+	}
+}
+
+func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		log = log.With(slog.String("component", "middleware/JWTAuthMiddleware"))
+		log.Info("JWT Auth middleware enabled")
+
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			tokenString := r.Header.Get("Authorization")
+			if tokenString == "" {
+				utils.SendError(w, "Missing authorization token")
+				return
+			}
+
+			// Убираем префикс "Bearer "
+			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+			userID, err := tokenManager.ValidateJWT(tokenString)
+			if err != nil {
+				utils.SendError(w, "Invalid or expired token")
+				return
+			}
+
+			// Добавляем user ID в контекст запроса
+			ctx := context.WithValue(r.Context(), "userID", userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 

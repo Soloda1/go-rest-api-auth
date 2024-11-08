@@ -9,9 +9,9 @@ import (
 )
 
 type DbPool struct {
-	db  *pgxpool.Pool
-	ctx context.Context
-	log *slog.Logger
+	Db  *pgxpool.Pool
+	Ctx context.Context
+	Log *slog.Logger
 }
 
 var (
@@ -28,9 +28,9 @@ func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *DbPool {
 		}
 
 		pgInstance = &DbPool{
-			db:  db,
-			ctx: ctx,
-			log: log,
+			Db:  db,
+			Ctx: ctx,
+			Log: log,
 		}
 	})
 
@@ -52,7 +52,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		    date_joined DATE DEFAULT CURRENT_DATE
 		)
 	`
-		_, err := pgInstance.db.Exec(ctx, query)
+		_, err := pgInstance.Db.Exec(ctx, query)
 		if err != nil {
 			log.Debug("Failed to create user table", slog.String("error", err.Error()))
 			os.Exit(1)
@@ -74,7 +74,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)
 	`
-		_, err := pgInstance.db.Exec(ctx, query)
+		_, err := pgInstance.Db.Exec(ctx, query)
 		if err != nil {
 			log.Debug("Failed to create user table", slog.String("error", err.Error()))
 			os.Exit(1)
@@ -91,7 +91,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 			name VARCHAR(50) UNIQUE NOT NULL
 		)
 	`
-		_, err := pgInstance.db.Exec(ctx, query)
+		_, err := pgInstance.Db.Exec(ctx, query)
 		if err != nil {
 			log.Debug("Failed to create user table", slog.String("error", err.Error()))
 			os.Exit(1)
@@ -113,7 +113,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 			FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 		)
 	`
-		_, err := pgInstance.db.Exec(ctx, query)
+		_, err := pgInstance.Db.Exec(ctx, query)
 		if err != nil {
 			log.Debug("Failed to create user table", slog.String("error", err.Error()))
 			os.Exit(1)
@@ -123,12 +123,30 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		done <- true
 	}()
 
+	go func() {
+		query := `
+		CREATE TABLE IF NOT EXISTS refresh_tokens (
+		    id SERIAL PRIMARY KEY,
+		    user_id INTEGER NOT NULL,
+		    token TEXT NOT NULL,
+		    expires_at TIMESTAMP NOT NULL,
+		    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)
+	`
+		_, err := pgInstance.Db.Exec(ctx, query)
+		if err != nil {
+			log.Debug("Failed to create refresh_tokens table", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+
+		log.Info("Created refresh_tokens table")
+	}()
 }
 
 func (pg *DbPool) Ping(ctx context.Context) error {
-	return pg.db.Ping(ctx)
+	return pg.Db.Ping(ctx)
 }
 
 func (pg *DbPool) Close() {
-	pg.db.Close()
+	pg.Db.Close()
 }

@@ -44,6 +44,7 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	TagsService := database.NewTagService(storage)
 	PostService := database.NewPostService(storage, TagsService)
 	UserService := database.NewUserService(storage)
+	//TokenManager := utils.NewJwtManager(cfg, storage)
 
 	log.Info("Database connected")
 	defer log.Info("Database disconnected")
@@ -61,7 +62,7 @@ func (s *APIServer) Run(cfg *config.Config) error {
 
 	v1 := http.NewServeMux()
 	v1MiddlewareStack := middleware.CreateStack(
-		middleware.RequireAuthMiddleware(log), // Мидлвейр для авторизации
+		middleware.TestAuthMiddleware(log), // Мидлвейр для авторизации
 	)
 
 	v1.HandleFunc("POST /posts", createPost.New(log, PostService))

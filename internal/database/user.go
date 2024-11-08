@@ -44,7 +44,7 @@ func (service *UserServiceImplementation) CreateUser(user UserDTO) (UserDTO, err
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		service.pg.log.Error("Error hashing password in create user in database", slog.String("password", user.Password))
+		service.pg.Log.Error("Error hashing password in create user in database", slog.String("password", user.Password))
 		return UserDTO{}, err
 	}
 
@@ -61,7 +61,7 @@ func (service *UserServiceImplementation) CreateUser(user UserDTO) (UserDTO, err
 		query = `INSERT INTO users (username, password, description, date_joined) VALUES (@username, @password, @description, @dateJoined) RETURNING id, username, password, description, date_joined`
 	}
 	var createdUser UserDTO
-	err = service.pg.db.QueryRow(service.pg.ctx, query, args).Scan(
+	err = service.pg.Db.QueryRow(service.pg.Ctx, query, args).Scan(
 		&createdUser.Id,
 		&createdUser.Username,
 		&createdUser.Password,
@@ -69,7 +69,7 @@ func (service *UserServiceImplementation) CreateUser(user UserDTO) (UserDTO, err
 		&createdUser.DateJoined,
 	)
 	if err != nil {
-		service.pg.log.Error("Error creating new user in database", slog.String("username", user.Username))
+		service.pg.Log.Error("Error creating new user in database", slog.String("username", user.Username))
 		return UserDTO{}, err
 	}
 
@@ -81,9 +81,9 @@ func (service *UserServiceImplementation) DeleteUser(userID int) error {
 	args := pgx.NamedArgs{
 		"id": userID,
 	}
-	_, err := service.pg.db.Exec(service.pg.ctx, query, args)
+	_, err := service.pg.Db.Exec(service.pg.Ctx, query, args)
 	if err != nil {
-		service.pg.log.Error("Error deleting user from database", slog.String("user_id", strconv.Itoa(userID)))
+		service.pg.Log.Error("Error deleting user from database", slog.String("user_id", strconv.Itoa(userID)))
 		return err
 	}
 	return nil
@@ -102,7 +102,7 @@ func (service *UserServiceImplementation) UpdateUser(user UserDTO) error {
 		setClauses = append(setClauses, "password = @password")
 		hashedPassword, err := utils.HashPassword(user.Password)
 		if err != nil {
-			service.pg.log.Error("Error hashing password in update user in database", slog.String("password", user.Password))
+			service.pg.Log.Error("Error hashing password in update user in database", slog.String("password", user.Password))
 			return err
 		}
 		args["password"] = hashedPassword
@@ -114,9 +114,9 @@ func (service *UserServiceImplementation) UpdateUser(user UserDTO) error {
 
 	query += strings.Join(setClauses, ", ") + " WHERE id = @id"
 
-	_, err := service.pg.db.Exec(service.pg.ctx, query, args)
+	_, err := service.pg.Db.Exec(service.pg.Ctx, query, args)
 	if err != nil {
-		service.pg.log.Error("Error updating user in database", slog.String("user_id", strconv.Itoa(user.Id)))
+		service.pg.Log.Error("Error updating user in database", slog.String("user_id", strconv.Itoa(user.Id)))
 		return err
 	}
 	return nil
@@ -127,11 +127,11 @@ func (service *UserServiceImplementation) GetUser(userID int) (UserDTO, error) {
 	args := pgx.NamedArgs{
 		"id": userID,
 	}
-	row := service.pg.db.QueryRow(service.pg.ctx, query, args)
+	row := service.pg.Db.QueryRow(service.pg.Ctx, query, args)
 	user := UserDTO{}
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Description, &user.DateJoined)
 	if err != nil {
-		service.pg.log.Error("Error getting user from database", slog.String("user_id", strconv.Itoa(userID)))
+		service.pg.Log.Error("Error getting user from database", slog.String("user_id", strconv.Itoa(userID)))
 		return UserDTO{}, err
 	}
 
@@ -141,9 +141,9 @@ func (service *UserServiceImplementation) GetUser(userID int) (UserDTO, error) {
 func (service *UserServiceImplementation) GetALlUsers() ([]UserDTO, error) {
 	query := `SELECT id,username,password,description,date_joined FROM users`
 
-	rows, err := service.pg.db.Query(service.pg.ctx, query)
+	rows, err := service.pg.Db.Query(service.pg.Ctx, query)
 	if err != nil {
-		service.pg.log.Error("Error getting all users from database")
+		service.pg.Log.Error("Error getting all users from database")
 		return nil, err
 	}
 	defer rows.Close()
