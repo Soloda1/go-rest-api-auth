@@ -14,3 +14,8 @@
 
 This project serves as a practical exercise to understand the core principles of RESTful API design, authentication, and authorization with Golang. It can be expanded upon with additional features such as user roles, permissions, and more complex error handling. 
 
+## Open Source
+This project is open source, and you are welcome to explore, use, and contribute to its development.
+
+## Project Status
+This project is a work in progress and will be improved further.
