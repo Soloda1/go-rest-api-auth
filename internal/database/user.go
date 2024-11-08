@@ -26,8 +26,9 @@ type UserService interface {
 	CreateUser(user UserDTO) (UserDTO, error)
 	DeleteUser(userID int) error
 	UpdateUser(user UserDTO) error
-	GetUser(userID int) (UserDTO, error)
+	GetUserById(userID int) (UserDTO, error)
 	GetALlUsers() ([]UserDTO, error)
+	GetUserByName(username string) (UserDTO, error)
 }
 
 func NewUserService(pg *DbPool) UserService {
@@ -122,7 +123,7 @@ func (service *UserServiceImplementation) UpdateUser(user UserDTO) error {
 	return nil
 }
 
-func (service *UserServiceImplementation) GetUser(userID int) (UserDTO, error) {
+func (service *UserServiceImplementation) GetUserById(userID int) (UserDTO, error) {
 	query := `SELECT id,username,password,description,date_joined FROM users WHERE id = @id`
 	args := pgx.NamedArgs{
 		"id": userID,
@@ -131,7 +132,23 @@ func (service *UserServiceImplementation) GetUser(userID int) (UserDTO, error) {
 	user := UserDTO{}
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Description, &user.DateJoined)
 	if err != nil {
-		service.pg.Log.Error("Error getting user from database", slog.String("user_id", strconv.Itoa(userID)))
+		service.pg.Log.Error("Error getting user by id from database", slog.String("user_id", strconv.Itoa(userID)), slog.String("error", err.Error()))
+		return UserDTO{}, err
+	}
+
+	return user, nil
+}
+
+func (service *UserServiceImplementation) GetUserByName(username string) (UserDTO, error) {
+	query := `SELECT id,username,password,description,date_joined FROM users WHERE username = @username`
+	args := pgx.NamedArgs{
+		"username": username,
+	}
+	row := service.pg.Db.QueryRow(service.pg.Ctx, query, args)
+	user := UserDTO{}
+	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Description, &user.DateJoined)
+	if err != nil {
+		service.pg.Log.Error("Error getting user by name from database", slog.String("username", username), slog.String("error", err.Error()))
 		return UserDTO{}, err
 	}
 

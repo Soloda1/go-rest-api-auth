@@ -25,7 +25,7 @@ func New(log *slog.Logger, service database.UserService) http.HandlerFunc {
 			return
 		}
 
-		_, err = service.GetUser(userID)
+		_, err = service.GetUserById(userID)
 		if err != nil {
 			log.Error("User not found", slog.String("user_id", r.PathValue("userID")), slog.String("Error", err.Error()))
 			utils.SendError(w, "User not found")

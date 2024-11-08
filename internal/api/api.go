@@ -4,6 +4,8 @@ import (
 	"context"
 	"gocourse/config"
 	"gocourse/internal/database"
+	"gocourse/internal/database/auth"
+	"gocourse/internal/handlers/auth/jwt/login"
 	"gocourse/internal/handlers/post/createPost"
 	"gocourse/internal/handlers/post/deletePost"
 	"gocourse/internal/handlers/post/getAllPosts"
@@ -44,7 +46,7 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	TagsService := database.NewTagService(storage)
 	PostService := database.NewPostService(storage, TagsService)
 	UserService := database.NewUserService(storage)
-	//TokenManager := utils.NewJwtManager(cfg, storage)
+	TokenManager := auth.NewJwtManager(cfg, storage)
 
 	log.Info("Database connected")
 	defer log.Info("Database disconnected")
@@ -54,6 +56,8 @@ func (s *APIServer) Run(cfg *config.Config) error {
 		middleware.RequestLoggerMiddleware(log),
 	)
 
+	router.HandleFunc("POST /login", login.New(log, TokenManager, UserService))
+
 	router.HandleFunc("GET /users/{userID}", getUser.New(log, UserService))
 	router.HandleFunc("GET /users", getAllUsers.New(log, UserService))
 	router.HandleFunc("POST /users", createUser.New(log, UserService))
@@ -62,7 +66,8 @@ func (s *APIServer) Run(cfg *config.Config) error {
 
 	v1 := http.NewServeMux()
 	v1MiddlewareStack := middleware.CreateStack(
-		middleware.TestAuthMiddleware(log), // Мидлвейр для авторизации
+		//middleware.TestAuthMiddleware(log),
+		middleware.JWTAuthMiddleware(log, TokenManager), // Мидлвейр для авторизации
 	)
 
 	v1.HandleFunc("POST /posts", createPost.New(log, PostService))

@@ -66,6 +66,7 @@ func (m *JwtManager) ValidateJWT(accessToken string) (jwt.MapClaims, error) {
 
 func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
 	claims, err := m.ValidateJWT(refreshToken)
+
 	if err != nil {
 		return fmt.Errorf("error get claims from token in saveRefreshToken: %v", err)
 	}
@@ -75,7 +76,7 @@ func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
 		return fmt.Errorf("error get user_id from token in saveRefreshToken: %v", err)
 	}
 
-	expiresAt, ok := claims["exp"].(jwt.NumericDate)
+	exp, ok := (claims["exp"].(float64))
 	if !ok {
 		return fmt.Errorf("error get expires_at from token in saveRefreshToken: %v", err)
 	}
@@ -84,7 +85,7 @@ func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
 	args := pgx.NamedArgs{
 		"user_id":    userID,
 		"token":      refreshToken,
-		"expires_at": expiresAt,
+		"expires_at": time.Unix(int64(exp), 0),
 	}
 
 	_, err = m.pg.Db.Exec(m.pg.Ctx, query, args)
