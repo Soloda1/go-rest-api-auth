@@ -10,6 +10,7 @@
 - **PostgreSQL**: The database used for storing user information and refresh tokens.
 - **Slog**: Structured logging library to provide clear and actionable logs.
 - **Validator**: For validating request payloads to ensure they meet expected formats.
+- **Cleanenv**: A library for reading and processing environment variables.
 
 This project serves as a practical exercise to understand the core principles of RESTful API design, authentication, and authorization with Golang. It can be expanded upon with additional features such as user roles, permissions, and more complex error handling. 
 
