@@ -101,9 +101,9 @@ func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(nex
 			// Убираем префикс "Bearer "
 			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
-			userID, err := tokenManager.ValidateJWT(tokenString)
+			userID, err := tokenManager.ValidateJWT(tokenString, "access")
 			if err != nil {
-				utils.SendError(w, "Invalid or expired token")
+				utils.SendError(w, "Invalid token or expired token or invalid token type")
 				return
 			}
 

@@ -57,18 +57,20 @@ func New(log *slog.Logger, tokenManager *auth.JwtManager, userService database.U
 			return
 		}
 
-		accessToken, err := tokenManager.GenerateJWT(strconv.Itoa(user.Id), tokenManager.AccessExpiresAt)
+		accessToken, err := tokenManager.GenerateJWT(strconv.Itoa(user.Id), "access", tokenManager.AccessExpiresAt)
 		if err != nil {
 			log.Error("failed to generate access token", slog.String("username", req.Username))
 			utils.SendError(w, err.Error())
 			return
 		}
-		refreshToken, err := tokenManager.GenerateJWT(strconv.Itoa(user.Id), tokenManager.RefreshExpiresAt)
+
+		refreshToken, err := tokenManager.GenerateJWT(strconv.Itoa(user.Id), "refresh", tokenManager.RefreshExpiresAt)
 		if err != nil {
 			log.Error("failed to generate refresh token", slog.String("username", req.Username))
 			utils.SendError(w, err.Error())
 			return
 		}
+
 		err = tokenManager.SaveRefreshToken(refreshToken)
 		if err != nil {
 			log.Error("failed to save refresh token", slog.String("username", req.Username))

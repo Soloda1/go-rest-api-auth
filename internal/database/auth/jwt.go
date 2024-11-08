@@ -23,6 +23,11 @@ type JwtManager struct {
 	RefreshExpiresAt time.Duration
 }
 
+type CustomClaims struct {
+	jwt.RegisteredClaims
+	TokenType string `json:"token_type"`
+}
+
 func NewJwtManager(cfg *config.Config, pg *database.DbPool) *JwtManager {
 	return &JwtManager{
 		pg:               pg,
@@ -32,18 +37,21 @@ func NewJwtManager(cfg *config.Config, pg *database.DbPool) *JwtManager {
 	}
 }
 
-func (m *JwtManager) GenerateJWT(userId string, ttl time.Duration) (string, error) {
+func (m *JwtManager) GenerateJWT(userId string, tokenType string, ttl time.Duration) (string, error) {
 	expirationTime := time.Now().Add(ttl)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(expirationTime),
-		Subject:   userId,
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &CustomClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			Subject:   userId,
+		},
+		TokenType: tokenType,
 	})
 
 	return token.SignedString([]byte(m.secret))
 }
 
-func (m *JwtManager) ValidateJWT(accessToken string) (jwt.MapClaims, error) {
+func (m *JwtManager) ValidateJWT(accessToken string, expectedType string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (i interface{}, err error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -61,11 +69,16 @@ func (m *JwtManager) ValidateJWT(accessToken string) (jwt.MapClaims, error) {
 		return jwt.MapClaims{}, fmt.Errorf("error get user claims from token")
 	}
 
+	tokenType, ok := claims["token_type"].(string)
+	if !ok || tokenType != expectedType {
+		return jwt.MapClaims{}, fmt.Errorf("invalid token type")
+	}
+
 	return claims, nil
 }
 
 func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
-	claims, err := m.ValidateJWT(refreshToken)
+	claims, err := m.ValidateJWT(refreshToken, "refresh")
 
 	if err != nil {
 		return fmt.Errorf("error get claims from token in saveRefreshToken: %v", err)
@@ -76,7 +89,7 @@ func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
 		return fmt.Errorf("error get user_id from token in saveRefreshToken: %v", err)
 	}
 
-	exp, ok := (claims["exp"].(float64))
+	exp, ok := claims["exp"].(float64)
 	if !ok {
 		return fmt.Errorf("error get expires_at from token in saveRefreshToken: %v", err)
 	}
