@@ -1,6 +1,6 @@
 # Simple REST API Auth
 
-**Simple REST API Auth** is a beginner project aimed at creating a basic authentication system using Go. This project serves as an introduction to building RESTful APIs and implementing JWT-based authentication in Go. It showcases fundamental concepts and practices in web development, making it an excellent starting point for anyone new to Go and web development.
+**Simple REST API Auth** is a beginner project aimed at creating a basic authentication system using Go. This project serves as an introduction to building RESTful APIs and implementing JWT-based authentication in Go. It showcases fundamental concepts and practices in web development.
 
 ## Technologies Used
 
