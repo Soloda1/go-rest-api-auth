@@ -6,6 +6,7 @@ import (
 	"gocourse/internal/database"
 	"gocourse/internal/database/auth"
 	"gocourse/internal/handlers/auth/jwt/login"
+	"gocourse/internal/handlers/auth/jwt/logout"
 	"gocourse/internal/handlers/post/createPost"
 	"gocourse/internal/handlers/post/deletePost"
 	"gocourse/internal/handlers/post/getAllPosts"
@@ -67,8 +68,10 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	v1 := http.NewServeMux()
 	v1MiddlewareStack := middleware.CreateStack(
 		//middleware.TestAuthMiddleware(log),
-		middleware.JWTAuthMiddleware(log, TokenManager), // Мидлвейр для авторизации
+		middleware.JWTAuthMiddleware(log, TokenManager),
 	)
+
+	v1.HandleFunc("GET /logout", logout.New(log, TokenManager))
 
 	v1.HandleFunc("POST /posts", createPost.New(log, PostService))
 	v1.HandleFunc("GET /posts", getAllPosts.New(log, PostService))

@@ -98,17 +98,15 @@ func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(nex
 				return
 			}
 
-			// Убираем префикс "Bearer "
 			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
-			userID, err := tokenManager.ValidateJWT(tokenString, "access")
+			accessTokenClaims, err := tokenManager.ValidateJWT(tokenString, "access")
 			if err != nil {
 				utils.SendError(w, "Invalid token or expired token or invalid token type")
 				return
 			}
 
-			// Добавляем user ID в контекст запроса
-			ctx := context.WithValue(r.Context(), "userID", userID)
+			ctx := context.WithValue(r.Context(), "userID", accessTokenClaims["sub"].(string))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
