@@ -51,8 +51,8 @@ func (m *JwtManager) GenerateJWT(userId string, tokenType string, ttl time.Durat
 	return token.SignedString([]byte(m.secret))
 }
 
-func (m *JwtManager) ValidateJWT(accessToken string, expectedType string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (i interface{}, err error) {
+func (m *JwtManager) ValidateJWT(reqToken string, expectedType string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(reqToken, func(token *jwt.Token) (i interface{}, err error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -123,6 +123,16 @@ func (m *JwtManager) GetRefreshToken(userID int) (RefreshTokenDTO, error) {
 	}
 
 	return token, nil
+}
+
+func (m *JwtManager) IsRefreshTokenValid(refreshToken string) (bool, error) {
+	var count int
+	query := "SELECT COUNT(*) FROM refresh_tokens WHERE token = $1"
+	err := m.pg.Db.QueryRow(m.pg.Ctx, query, refreshToken).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (m *JwtManager) DeleteRefreshToken(userID int) error {

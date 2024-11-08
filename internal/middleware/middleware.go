@@ -102,7 +102,7 @@ func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(nex
 
 			accessTokenClaims, err := tokenManager.ValidateJWT(tokenString, "access")
 			if err != nil {
-				utils.SendError(w, "Invalid token or expired token or invalid token type")
+				utils.SendError(w, err.Error())
 				return
 			}
 

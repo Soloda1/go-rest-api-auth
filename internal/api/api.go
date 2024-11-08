@@ -7,6 +7,7 @@ import (
 	"gocourse/internal/database/auth"
 	"gocourse/internal/handlers/auth/jwt/login"
 	"gocourse/internal/handlers/auth/jwt/logout"
+	"gocourse/internal/handlers/auth/jwt/refresh"
 	"gocourse/internal/handlers/post/createPost"
 	"gocourse/internal/handlers/post/deletePost"
 	"gocourse/internal/handlers/post/getAllPosts"
@@ -58,6 +59,7 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	)
 
 	router.HandleFunc("POST /login", login.New(log, TokenManager, UserService))
+	router.HandleFunc("POST /refresh", refresh.New(log, TokenManager))
 
 	router.HandleFunc("GET /users/{userID}", getUser.New(log, UserService))
 	router.HandleFunc("GET /users", getAllUsers.New(log, UserService))
