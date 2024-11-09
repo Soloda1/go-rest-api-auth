@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"gocourse/internal/database/auth"
 	"gocourse/internal/utils"
 	"log/slog"
@@ -107,6 +108,38 @@ func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(nex
 			}
 
 			ctx := context.WithValue(r.Context(), "userID", accessTokenClaims["sub"].(string))
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+
+		return http.HandlerFunc(fn)
+	}
+}
+
+func SessionAuthMiddleware(log *slog.Logger, sessionManager *auth.SessionManager) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		log = log.With(slog.String("component", "middleware/SessionAuthMiddleware"))
+		log.Info("Session Auth middleware enabled")
+
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			cookie, err := r.Cookie("session_id")
+			if err != nil {
+				utils.SendError(w, "Unauthorized cookies")
+				return
+			}
+
+			sessionID := cookie.Value
+			userID, err := sessionManager.GetUserIdBySession(sessionID)
+			if err != nil {
+				if errors.Is(err, sessionManager.ErrSessionNotFound) {
+					utils.SendError(w, "Session not found")
+					return
+				} else {
+					utils.SendError(w, "Internal Server Error")
+					return
+				}
+			}
+
+			ctx := context.WithValue(r.Context(), "user_id", userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 

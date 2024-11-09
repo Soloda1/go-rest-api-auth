@@ -25,7 +25,7 @@ type Response struct {
 
 func New(log *slog.Logger, tokenManager *auth.JwtManager, userService database.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Info("Login user")
+		log.Info("JWT Login user")
 
 		//get request body info
 		var req Request

@@ -36,10 +36,11 @@ type JWT struct {
 }
 
 type REDIS struct {
-	Host     string `yaml:"host" env-default:"localhost"`
-	Port     string `yaml:"port" env-default:"6379"`
-	Password string `yaml:"password" env-default:"admin"`
-	DbIndex  int    `yaml:"db_index" env-default:"0"`
+	Host     string        `yaml:"host" env-default:"localhost"`
+	Port     string        `yaml:"port" env-default:"6379"`
+	Password string        `yaml:"password" env-default:"admin"`
+	DbIndex  int           `yaml:"db_index" env-default:"0"`
+	TTL      time.Duration `yaml:"ttl" env-default:"360h"`
 }
 
 func MustLoad() *Config {

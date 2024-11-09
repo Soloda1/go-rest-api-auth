@@ -5,9 +5,10 @@ import (
 	"gocourse/config"
 	"gocourse/internal/database"
 	"gocourse/internal/database/auth"
-	"gocourse/internal/handlers/auth/jwt/login"
-	"gocourse/internal/handlers/auth/jwt/logout"
+	jwtLogin "gocourse/internal/handlers/auth/jwt/login"
+	jwtLogout "gocourse/internal/handlers/auth/jwt/logout"
 	"gocourse/internal/handlers/auth/jwt/refresh"
+	sessionLogin "gocourse/internal/handlers/auth/session/login"
 	"gocourse/internal/handlers/post/createPost"
 	"gocourse/internal/handlers/post/deletePost"
 	"gocourse/internal/handlers/post/getAllPosts"
@@ -53,7 +54,7 @@ func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 	storage := database.NewDbPool(ctx, s.dbUrl, log)
 	log.Info("Database connected")
 	defer func() {
-		slog.Error("Database disconnected")
+		slog.Info("Database disconnected")
 		storage.Close()
 	}()
 
@@ -64,21 +65,25 @@ func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 		if err != nil {
 			slog.Error("Failed to close Redis connection")
 		}
-		slog.Error("Redis disconnected")
+		slog.Info("Redis disconnected")
 	}()
-	_ = cache
 
 	TagsService := database.NewTagService(storage)
 	PostService := database.NewPostService(storage, TagsService)
 	UserService := database.NewUserService(storage)
 	TokenManager := auth.NewJwtManager(cfg, storage)
+	SessionManager := auth.NewSessionManager(cache, cfg.REDIS.TTL)
 
 	mainMiddlewareStack := middleware.CreateStack(
 		middleware.RequestLoggerMiddleware(log),
 	)
 
-	router.HandleFunc("POST /login", login.New(log, TokenManager, UserService))
+	//JWT auth
+	router.HandleFunc("POST /jwt_login", jwtLogin.New(log, TokenManager, UserService))
 	router.HandleFunc("POST /refresh", refresh.New(log, TokenManager))
+
+	//Session auth
+	router.HandleFunc("POST /session_login", sessionLogin.New(log, SessionManager, UserService))
 
 	router.HandleFunc("GET /users/{userID}", getUser.New(log, UserService))
 	router.HandleFunc("GET /users", getAllUsers.New(log, UserService))
@@ -92,7 +97,7 @@ func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 		middleware.JWTAuthMiddleware(log, TokenManager),
 	)
 
-	v1.HandleFunc("GET /logout", logout.New(log, TokenManager))
+	v1.HandleFunc("GET /logout", jwtLogout.New(log, TokenManager))
 
 	v1.HandleFunc("POST /posts", createPost.New(log, PostService))
 	v1.HandleFunc("GET /posts", getAllPosts.New(log, PostService))
@@ -100,7 +105,21 @@ func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 	v1.HandleFunc("PUT /posts/{postID}", updatePost.New(log, PostService))
 	v1.HandleFunc("DELETE /posts/{postID}", deletePost.New(log, PostService))
 
+	v2 := http.NewServeMux()
+	v2MiddlewareStack := middleware.CreateStack(
+		middleware.SessionAuthMiddleware(log, SessionManager),
+	)
+
+	//v2.HandleFunc("GET /logout")
+
+	v2.HandleFunc("POST /posts", createPost.New(log, PostService))
+	v2.HandleFunc("GET /posts", getAllPosts.New(log, PostService))
+	v2.HandleFunc("GET /posts/{postID}", getPost.New(log, PostService))
+	v2.HandleFunc("PUT /posts/{postID}", updatePost.New(log, PostService))
+	v2.HandleFunc("DELETE /posts/{postID}", deletePost.New(log, PostService))
+
 	router.Handle("/v1/", http.StripPrefix("/v1", v1MiddlewareStack(v1)))
+	router.Handle("/v2", http.StripPrefix("/v2", v2MiddlewareStack(v2)))
 
 	s.server = &http.Server{
 		Addr:         s.address,
