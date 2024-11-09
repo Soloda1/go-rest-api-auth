@@ -107,7 +107,7 @@ func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(nex
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "userID", accessTokenClaims["sub"].(string))
+			ctx := context.WithValue(r.Context(), "user_id", accessTokenClaims["sub"].(string))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 

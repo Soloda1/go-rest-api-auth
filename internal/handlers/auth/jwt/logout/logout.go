@@ -15,9 +15,9 @@ type Response struct {
 
 func New(log *slog.Logger, tokenManager *auth.JwtManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Info("Logout user")
+		log.Info("JWT  Logout user")
 
-		userID, err := strconv.Atoi(r.Context().Value("userID").(string))
+		userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
 		if err != nil {
 			log.Error("Invalid user ID")
 			utils.SendError(w, err.Error())

@@ -7,6 +7,7 @@ import (
 	"gocourse/internal/utils"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 type Request struct {
@@ -25,15 +26,16 @@ func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Create Post")
 
-		userID, ok := r.Context().Value("user_id").(int)
-		if !ok {
+		userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
+		if err != nil {
 			log.Debug("User ID not found")
+			utils.SendError(w, "User ID not found")
 			return
 		}
 
 		//get request body info
 		var req Request
-		err := json.NewDecoder(r.Body).Decode(&req)
+		err = json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			log.Error("failed to decode request body", slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())

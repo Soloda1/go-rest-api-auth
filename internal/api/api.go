@@ -9,6 +9,7 @@ import (
 	jwtLogout "gocourse/internal/handlers/auth/jwt/logout"
 	"gocourse/internal/handlers/auth/jwt/refresh"
 	sessionLogin "gocourse/internal/handlers/auth/session/login"
+	sessionLogout "gocourse/internal/handlers/auth/session/logout"
 	"gocourse/internal/handlers/post/createPost"
 	"gocourse/internal/handlers/post/deletePost"
 	"gocourse/internal/handlers/post/getAllPosts"
@@ -110,7 +111,7 @@ func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 		middleware.SessionAuthMiddleware(log, SessionManager),
 	)
 
-	//v2.HandleFunc("GET /logout")
+	v2.HandleFunc("GET /logout", sessionLogout.New(log, SessionManager))
 
 	v2.HandleFunc("POST /posts", createPost.New(log, PostService))
 	v2.HandleFunc("GET /posts", getAllPosts.New(log, PostService))
@@ -119,7 +120,7 @@ func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 	v2.HandleFunc("DELETE /posts/{postID}", deletePost.New(log, PostService))
 
 	router.Handle("/v1/", http.StripPrefix("/v1", v1MiddlewareStack(v1)))
-	router.Handle("/v2", http.StripPrefix("/v2", v2MiddlewareStack(v2)))
+	router.Handle("/v2/", http.StripPrefix("/v2", v2MiddlewareStack(v2)))
 
 	s.server = &http.Server{
 		Addr:         s.address,
