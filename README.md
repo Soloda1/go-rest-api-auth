@@ -19,4 +19,4 @@ This project serves as a practical exercise to understand the core principles of
 This project is open source, and you are welcome to explore, use, and contribute to its development.
 
 ## Project Status
-This project is a work in progress and will continue to be improved
+This project is a work in progress and will continue to be improved.
