@@ -31,28 +31,47 @@ const (
 )
 
 type APIServer struct {
-	address string
-	dbUrl   string
+	address  string
+	dbUrl    string
+	redisUrl string
+	server   *http.Server
 }
 
-func NewAPIServer(address string, dbUrl string) *APIServer {
-	return &APIServer{address: address, dbUrl: dbUrl}
+func NewAPIServer(address string, dbUrl string, redisUrl string) *APIServer {
+	return &APIServer{
+		address:  address,
+		dbUrl:    dbUrl,
+		redisUrl: redisUrl,
+	}
 }
 
-func (s *APIServer) Run(cfg *config.Config) error {
+func (s *APIServer) Run(cfg *config.Config, ctx context.Context) error {
 	log := setupLogger(cfg.Env)
 
 	router := http.NewServeMux()
 
-	storage := database.NewDbPool(context.Background(), s.dbUrl, log)
+	storage := database.NewDbPool(ctx, s.dbUrl, log)
+	log.Info("Database connected")
+	defer func() {
+		slog.Error("Database disconnected")
+		storage.Close()
+	}()
+
+	cache := database.NewRedisClient(ctx, log, s.redisUrl)
+	log.Info("Redis connected")
+	defer func() {
+		err := cache.Cache.Close()
+		if err != nil {
+			slog.Error("Failed to close Redis connection")
+		}
+		slog.Error("Redis disconnected")
+	}()
+	_ = cache
+
 	TagsService := database.NewTagService(storage)
 	PostService := database.NewPostService(storage, TagsService)
 	UserService := database.NewUserService(storage)
 	TokenManager := auth.NewJwtManager(cfg, storage)
-
-	log.Info("Database connected")
-	defer log.Info("Database disconnected")
-	defer storage.Close()
 
 	mainMiddlewareStack := middleware.CreateStack(
 		middleware.RequestLoggerMiddleware(log),
@@ -83,7 +102,7 @@ func (s *APIServer) Run(cfg *config.Config) error {
 
 	router.Handle("/v1/", http.StripPrefix("/v1", v1MiddlewareStack(v1)))
 
-	server := http.Server{
+	s.server = &http.Server{
 		Addr:         s.address,
 		Handler:      mainMiddlewareStack(router),
 		ReadTimeout:  cfg.HTTPServer.Timeout,
@@ -94,7 +113,11 @@ func (s *APIServer) Run(cfg *config.Config) error {
 	log.Info("Server has started: ", slog.String("address", s.address))
 	log.Debug("debug logger enabled")
 
-	return server.ListenAndServe()
+	return s.server.ListenAndServe()
+}
+
+func (s *APIServer) Shutdown(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
 }
 
 func setupLogger(env string) *slog.Logger {

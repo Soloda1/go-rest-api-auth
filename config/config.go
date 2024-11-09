@@ -20,6 +20,7 @@ type Config struct {
 	HTTPServer `yaml:"http_server" env-required:"true"`
 	DATABASE   `yaml:"database" env-required:"true"`
 	JWT        `yaml:"jwt" env-required:"true"`
+	REDIS      `yaml:"redis" env-required:"true"`
 }
 
 type HTTPServer struct {
@@ -32,6 +33,13 @@ type JWT struct {
 	Secret           string        `yaml:"secret" env-default:"test-secret-key"`
 	AccessExpiresAt  time.Duration `yaml:"access_expires_at" env-default:"15m"`
 	RefreshExpiresAt time.Duration `yaml:"refresh_expires_at" env-default:"720h"`
+}
+
+type REDIS struct {
+	Host     string `yaml:"host" env-default:"localhost"`
+	Port     string `yaml:"port" env-default:"6379"`
+	Password string `yaml:"password" env-default:"admin"`
+	DbIndex  int    `yaml:"db_index" env-default:"0"`
 }
 
 func MustLoad() *Config {
