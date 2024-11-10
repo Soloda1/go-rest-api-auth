@@ -11,12 +11,12 @@ import (
 )
 
 type PostDTO struct {
-	Id        int
-	Title     string
-	Content   string
-	UserId    int
-	CreatedAt pgtype.Timestamp
-	Tags      []string
+	Id        int              `json:"id,omitempty"`
+	Title     string           `json:"title,omitempty"`
+	Content   string           `json:"content,omitempty"`
+	UserId    int              `json:"user_id,omitempty"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	Tags      []string         `json:"tags,omitempty"`
 }
 
 type PostServiceImplementation struct {

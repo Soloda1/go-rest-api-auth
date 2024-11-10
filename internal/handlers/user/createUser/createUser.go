@@ -9,12 +9,16 @@ import (
 	"net/http"
 )
 
+// Request represents the creation user request payload.
+// swagger:model
 type Request struct {
 	Username    string `json:"username" validate:"required"`
 	Password    string `json:"password" validate:"required"`
 	Description string `json:"description"`
 }
 
+// Response represents the creation user response payload.
+// swagger:model
 type Response struct {
 	Status string           `json:"status"`
 	Error  string           `json:"error,omitempty"`

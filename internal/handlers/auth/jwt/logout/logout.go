@@ -1,4 +1,4 @@
-package logout
+package jwtLogout
 
 import (
 	"gocourse/internal/database/auth"
@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+// Response represents the jwt logout response payload.
+// swagger:model
 type Response struct {
 	Status string `json:"status"`
 	Error  string `json:"error,omitempty"`

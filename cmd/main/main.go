@@ -40,9 +40,4 @@ func main() {
 	<-done
 	slog.Info("Server exiting")
 
-	//err := server.Run(cfg)
-	//if err != nil {
-	//	slog.Error("Server error", slog.String("error", err.Error()))
-	//	os.Exit(1)
-	//}
 }

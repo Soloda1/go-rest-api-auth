@@ -1,4 +1,4 @@
-package login
+package sessionLogin
 
 import (
 	"encoding/json"
@@ -13,11 +13,15 @@ import (
 	"time"
 )
 
+// Request represents the session login request payload.
+// swagger:model
 type Request struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
+// Response represents the session login response payload.
+// swagger:model
 type Response struct {
 	Status    string `json:"status"`
 	Error     string `json:"error,omitempty"`

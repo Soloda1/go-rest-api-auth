@@ -10,12 +10,16 @@ import (
 	"strconv"
 )
 
+// Request represents the updating post request payload.
+// swagger:model
 type Request struct {
 	Title   string   `json:"title"`
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
 }
 
+// Response represents the updating post response payload.
+// swagger:model
 type Response struct {
 	Status string           `json:"status"`
 	Error  string           `json:"error,omitempty"`

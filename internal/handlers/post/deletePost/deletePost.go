@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+// Response represents the deleting post response payload.
+// swagger:model
 type Response struct {
 	Status string `json:"status"`
 	Error  string `json:"error,omitempty"`

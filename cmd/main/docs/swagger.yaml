@@ -1,0 +1,637 @@
+basePath: /
+definitions:
+  createPost.Request:
+    properties:
+      content:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  createPost.Response:
+    properties:
+      error:
+        type: string
+      post:
+        $ref: '#/definitions/database.PostDTO'
+      status:
+        type: string
+    type: object
+  createUser.Request:
+    properties:
+      description:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  createUser.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/database.UserDTO'
+    type: object
+  database.PostDTO:
+    properties:
+      content:
+        type: string
+      created_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  database.UserDTO:
+    properties:
+      dateJoined:
+        $ref: '#/definitions/pgtype.Date'
+      description:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  getAllPosts.Response:
+    properties:
+      error:
+        type: string
+      posts:
+        items:
+          $ref: '#/definitions/database.PostDTO'
+        type: array
+      status:
+        type: string
+    type: object
+  getAllUsers.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+      usernames:
+        items:
+          $ref: '#/definitions/database.UserDTO'
+        type: array
+    type: object
+  getPost.Response:
+    properties:
+      error:
+        type: string
+      post:
+        $ref: '#/definitions/database.PostDTO'
+      status:
+        type: string
+    type: object
+  getUser.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/database.UserDTO'
+    type: object
+  jwtLogin.Request:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  jwtLogin.Response:
+    properties:
+      access_token:
+        type: string
+      error:
+        type: string
+      refresh_token:
+        type: string
+      status:
+        type: string
+    type: object
+  pgtype.Date:
+    properties:
+      infinityModifier:
+        $ref: '#/definitions/pgtype.InfinityModifier'
+      time:
+        type: string
+      valid:
+        type: boolean
+    type: object
+  pgtype.InfinityModifier:
+    enum:
+    - 1
+    - 0
+    - -1
+    type: integer
+    x-enum-varnames:
+    - Infinity
+    - Finite
+    - NegativeInfinity
+  pgtype.Timestamp:
+    properties:
+      infinityModifier:
+        $ref: '#/definitions/pgtype.InfinityModifier'
+      time:
+        description: Time zone will be ignored when encoding to PostgreSQL.
+        type: string
+      valid:
+        type: boolean
+    type: object
+  refresh.Request:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  refresh.Response:
+    properties:
+      access_token:
+        type: string
+      error:
+        type: string
+      refresh_token:
+        type: string
+      status:
+        type: string
+    type: object
+  sessionLogin.Request:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  sessionLogin.Response:
+    properties:
+      error:
+        type: string
+      session_id:
+        type: string
+      status:
+        type: string
+    type: object
+  updatePost.Request:
+    properties:
+      content:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  updatePost.Response:
+    properties:
+      error:
+        type: string
+      post:
+        $ref: '#/definitions/database.PostDTO'
+      status:
+        type: string
+    type: object
+  updateUser.Request:
+    properties:
+      description:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  updateUser.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/database.UserDTO'
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: This is a sample server.
+  title: API DOCUMENTATION
+  version: "1.0"
+paths:
+  /jwt_login:
+    post:
+      consumes:
+      - application/json
+      description: Login using JWT authentication
+      parameters:
+      - description: JWT login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/jwtLogin.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/jwtLogin.Response'
+      summary: JWT Login
+      tags:
+      - Auth
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh JWT token
+      parameters:
+      - description: JWT refresh request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/refresh.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/refresh.Response'
+      summary: Refresh JWT
+      tags:
+      - Auth
+  /session_login:
+    post:
+      consumes:
+      - application/json
+      description: Login using session-based authentication
+      parameters:
+      - description: Session login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sessionLogin.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sessionLogin.Response'
+      summary: Session Login
+      tags:
+      - Auth
+  /users:
+    get:
+      description: Get a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/getAllUsers.Response'
+            type: array
+      summary: Get All Users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: Create user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/createUser.Request'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/createUser.Response'
+      summary: Create User
+      tags:
+      - Users
+  /users/{userID}:
+    delete:
+      description: Delete user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete User
+      tags:
+      - Users
+    get:
+      description: Get user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/getUser.Response'
+      summary: Get User
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update user information by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: Update user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/updateUser.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/updateUser.Response'
+      summary: Update User
+      tags:
+      - Users
+  /v1/logout:
+    get:
+      description: Logout and invalidate JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: JWT Logout
+      tags:
+      - Auth
+  /v1/posts:
+    get:
+      description: Get a list of all posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/getAllPosts.Response'
+            type: array
+      summary: Get All Posts
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Create a new post
+      parameters:
+      - description: Create post request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/createPost.Request'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/createPost.Response'
+      summary: Create Post
+      tags:
+      - Posts
+  /v1/posts/{postID}:
+    delete:
+      description: Delete post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete Post
+      tags:
+      - Posts
+    get:
+      description: Get post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/getPost.Response'
+      summary: Get Post
+      tags:
+      - Posts
+    put:
+      consumes:
+      - application/json
+      description: Update post information by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: string
+      - description: Update post request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/updatePost.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/updatePost.Response'
+      summary: Update Post
+      tags:
+      - Posts
+  /v2/logout:
+    get:
+      description: Logs out the user by clearing the session stored in the cookie
+        "session_id".
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged out
+          schema:
+            type: string
+      summary: Logout from session-based authentication
+      tags:
+      - session_auth
+  /v2/posts:
+    get:
+      description: Retrieve all posts in the system with session-based authentication
+        (requires "session_id" cookie).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of posts
+          schema:
+            items:
+              $ref: '#/definitions/getAllPosts.Response'
+            type: array
+      summary: Get all posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      description: Create a post in the system with session-based authentication (requires
+        "session_id" cookie).
+      parameters:
+      - description: Post details
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/createPost.Request'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Post created successfully
+          schema:
+            $ref: '#/definitions/createPost.Response'
+      summary: Create a new post
+      tags:
+      - posts
+  /v2/posts/{postID}:
+    delete:
+      description: Delete a specific post by its ID with session-based authentication
+        (requires "session_id" cookie).
+      parameters:
+      - description: ID of the post
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post deleted successfully
+          schema:
+            type: string
+      summary: Delete a post by ID
+      tags:
+      - posts
+    get:
+      description: Retrieve a specific post by its ID with session-based authentication
+        (requires "session_id" cookie).
+      parameters:
+      - description: ID of the post
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post details
+          schema:
+            $ref: '#/definitions/getPost.Response'
+      summary: Get post by ID
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      description: Update a specific post by its ID with session-based authentication
+        (requires "session_id" cookie).
+      parameters:
+      - description: ID of the post
+        in: path
+        name: postID
+        required: true
+        type: string
+      - description: Updated post details
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/updatePost.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post updated successfully
+          schema:
+            $ref: '#/definitions/updatePost.Response'
+      summary: Update a post by ID
+      tags:
+      - posts
+swagger: "2.0"

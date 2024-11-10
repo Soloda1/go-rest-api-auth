@@ -1,4 +1,4 @@
-package logout
+package sessionLogout
 
 import (
 	"gocourse/internal/database/auth"
@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// Response represents the session logout response payload.
+// swagger:model
 type Response struct {
 	Status string `json:"status"`
 	Error  string `json:"error,omitempty"`

@@ -1,4 +1,4 @@
-package login
+package jwtLogin
 
 import (
 	"encoding/json"
@@ -11,11 +11,15 @@ import (
 	"strconv"
 )
 
+// Request represents the jwt login request payload.
+// swagger:model
 type Request struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
+// Response represents the jwt login response payload.
+// swagger:model
 type Response struct {
 	Status       string `json:"status"`
 	Error        string `json:"error,omitempty"`
