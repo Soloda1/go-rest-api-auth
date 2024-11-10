@@ -14,7 +14,7 @@
 - **Cleanenv**: A library for reading and processing environment variables.
 - **Docker**: Containerization of the application, allowing for easy setup, scaling, and deployment.
 - **Nginx**: Used as a reverse proxy to route incoming requests to the Go application.
-- **Swagger**: API documentation generated using the [Swaggo](https://github.com/swaggo/swag) library to provide clear and accessible API documentation.
+- **Swagger**: API documentation generated using the Swaggo library.
 
 ## Features
 - **JWT Authentication**: Secure user authentication with JSON Web Tokens.
