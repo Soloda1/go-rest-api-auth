@@ -1,6 +1,6 @@
 # Simple REST API Auth
 
-**Simple REST API Auth** is a beginner project aimed at creating a basic authentication system using Go. This project serves as an introduction to building RESTful APIs, implementing JWT-based authentication, and session-based authentication with Redis caching in Go. It showcases fundamental concepts and practices in web development.
+**Simple REST API Auth** is a beginner project aimed at creating a basic authentication system using Go. This project serves as an introduction to building RESTful APIs, implementing JWT-based authentication, session-based authentication with Redis caching in Go, and generating API documentation using Swagger. It showcases fundamental concepts and practices in web development.
 
 ## Technologies Used
 - **Go**: The primary programming language used for developing this API.
@@ -12,11 +12,21 @@
 - **Slog**: Structured logging library to provide clear and actionable logs.
 - **Validator**: For validating request payloads to ensure they meet expected formats.
 - **Cleanenv**: A library for reading and processing environment variables.
+- **Docker**: Containerization of the application, allowing for easy setup, scaling, and deployment.
+- **Nginx**: Used as a reverse proxy to route incoming requests to the Go application.
+- **Swagger**: API documentation generated using the [Swaggo](https://github.com/swaggo/swag) library to provide clear and accessible API documentation.
 
-This project serves as a practical exercise to understand the core principles of RESTful API design, authentication, and authorization with Golang. It can be expanded with additional features such as user roles, permissions, and more complex error handling.
+## Features
+- **JWT Authentication**: Secure user authentication with JSON Web Tokens.
+- **Session Management**: Session-based authentication using Redis caching.
+- **API Documentation**: Automatically generated API documentation using Swagger and Swaggo.
+- **Dockerized Application**: The project is fully containerized using Docker, making it easy to set up and deploy.
+- **Reverse Proxy with Nginx**: Nginx is configured as a reverse proxy to route requests to the Go API server.
 
 ## Open Source
 This project is open source, and you are welcome to explore, use, and contribute to its development.
 
 ## Project Status
 This project is a work in progress and will continue to be improved.
+
+
