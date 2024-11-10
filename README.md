@@ -16,12 +16,6 @@
 - **Nginx**: Used as a reverse proxy to route incoming requests to the Go application.
 - **Swagger**: API documentation generated using the Swaggo library.
 
-## Features
-- **JWT Authentication**: Secure user authentication with JSON Web Tokens.
-- **Session Management**: Session-based authentication using Redis caching.
-- **API Documentation**: Automatically generated API documentation using Swagger and Swaggo.
-- **Dockerized Application**: The project is fully containerized using Docker, making it easy to set up and deploy.
-- **Reverse Proxy with Nginx**: Nginx is configured as a reverse proxy to route requests to the Go API server.
 
 ## Open Source
 This project is open source, and you are welcome to explore, use, and contribute to its development.
