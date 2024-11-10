@@ -50,6 +50,7 @@ func NewAPIServer(address string, dbUrl string, redisUrl string) *APIServer {
 	}
 }
 
+// Run Function
 // @title API DOCUMENTATION
 // @version 1.0
 // @description This is a sample server.

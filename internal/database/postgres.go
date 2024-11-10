@@ -123,8 +123,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		done <- true
 	}()
 
-	go func() {
-		query := `
+	query := `
 		CREATE TABLE IF NOT EXISTS refresh_tokens (
 		    id SERIAL PRIMARY KEY,
 		    user_id INTEGER NOT NULL UNIQUE ,
@@ -133,14 +132,14 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)
 	`
-		_, err := pgInstance.Db.Exec(ctx, query)
-		if err != nil {
-			log.Debug("Failed to create refresh_tokens table", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
+	_, err := pgInstance.Db.Exec(ctx, query)
+	if err != nil {
+		log.Debug("Failed to create refresh_tokens table", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 
-		log.Info("Created refresh_tokens table")
-	}()
+	log.Info("Created refresh_tokens table")
+
 }
 
 func (pg *DbPool) Ping(ctx context.Context) error {
