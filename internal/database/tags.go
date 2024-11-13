@@ -15,6 +15,7 @@ type TagsServiceImplementation struct {
 	pg *DbPool
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.46.3 --name TagsService --output ../../testing/mocks
 type TagsService interface {
 	CreateTag(tag TagsDTO) (TagsDTO, error)
 	DeleteTag(tagID int) error

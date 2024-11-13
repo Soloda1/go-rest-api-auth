@@ -22,6 +22,7 @@ type UserServiceImplementation struct {
 	pg *DbPool
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.46.3 --name UserService --output ../../testing/mocks
 type UserService interface {
 	CreateUser(user UserDTO) (UserDTO, error)
 	DeleteUser(userID int) error

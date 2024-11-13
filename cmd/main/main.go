@@ -22,7 +22,7 @@ func main() {
 	done := make(chan bool)
 	go func() {
 		if err := server.Run(cfg, ctx); err != nil {
-			slog.Error("Server error", slog.String("error", err.Error()))
+			slog.Error("Server error", slog.String("err", err.Error()))
 		}
 		done <- true
 	}()

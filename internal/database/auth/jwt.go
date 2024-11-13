@@ -23,6 +23,7 @@ type JwtManagerImplementation struct {
 	RefreshExpiresAt time.Duration
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.46.3 --name JwtManager --output ../../../testing/mocks
 type JwtManager interface {
 	GenerateJWT(userId string, tokenType string, ttl time.Duration) (string, error)
 	ValidateJWT(reqToken string, expectedType string) (jwt.MapClaims, error)

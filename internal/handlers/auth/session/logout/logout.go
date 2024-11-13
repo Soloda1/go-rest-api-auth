@@ -3,8 +3,10 @@ package sessionLogout
 import (
 	"go-rest-api-auth/internal/database/auth"
 	"go-rest-api-auth/internal/utils"
+
 	"log/slog"
 	"net/http"
+
 	"time"
 )
 
@@ -22,14 +24,14 @@ func New(log *slog.Logger, sessionManager auth.SessionManager) http.HandlerFunc 
 		cookie, err := r.Cookie("session_id")
 		if err != nil {
 			log.Error("Error getting cookie", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "Error getting cookie")
 			return
 		}
 
 		err = sessionManager.DeleteSession(cookie.Value)
 		if err != nil {
 			log.Error("Error deleting session", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "Error deleting session")
 			return
 		}
 

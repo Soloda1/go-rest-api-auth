@@ -15,6 +15,7 @@ type SessionManagerImplementation struct {
 	ErrSessionNotFound error
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.46.3 --name SessionManager --output ../../../testing/mocks
 type SessionManager interface {
 	CreateSession(userID string) (string, error)
 	GetUserIdBySession(sessionID string) (string, error)

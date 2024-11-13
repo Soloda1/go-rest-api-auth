@@ -37,7 +37,7 @@ func New(log *slog.Logger, sessionManager auth.SessionManager, userService datab
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			log.Error("failed to decode request body", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to decode request body")
 			return
 		}
 
@@ -45,14 +45,14 @@ func New(log *slog.Logger, sessionManager auth.SessionManager, userService datab
 		err = validator.New().Struct(req)
 		if err != nil {
 			log.Error("failed to validate request", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to validate request")
 			return
 		}
 
 		user, err := userService.GetUserByName(req.Username)
 		if err != nil {
 			log.Error("failed to get user", slog.String("username", req.Username))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to get user")
 			return
 		}
 
@@ -63,7 +63,6 @@ func New(log *slog.Logger, sessionManager auth.SessionManager, userService datab
 		}
 
 		_, sessionExists := sessionManager.GetSessionByUserID(strconv.Itoa(user.Id))
-		log.Debug("sessionExists", slog.Any("sessionExists", sessionExists))
 		if !errors.Is(sessionExists, sessionManager.GetterErrSessionNotFound()) {
 			log.Error("session already exists", slog.String("username", req.Username))
 			utils.SendError(w, "session already exists")
