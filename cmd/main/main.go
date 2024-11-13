@@ -35,7 +35,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
-		slog.Error("Server forced to shutdown: %v", err)
+		slog.Error("Server forced to shutdown", slog.String("err", err.Error()))
 	}
 	<-done
 	slog.Info("Server exiting")

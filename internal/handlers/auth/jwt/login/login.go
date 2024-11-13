@@ -36,7 +36,7 @@ func New(log *slog.Logger, tokenManager auth.JwtManager, userService database.Us
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			log.Error("failed to decode request body", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to decode request body")
 			return
 		}
 
@@ -44,14 +44,14 @@ func New(log *slog.Logger, tokenManager auth.JwtManager, userService database.Us
 		err = validator.New().Struct(req)
 		if err != nil {
 			log.Error("failed to validate request", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to validate request")
 			return
 		}
 
 		user, err := userService.GetUserByName(req.Username)
 		if err != nil {
 			log.Error("failed to get user", slog.String("username", req.Username))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to get user")
 			return
 		}
 
@@ -64,21 +64,21 @@ func New(log *slog.Logger, tokenManager auth.JwtManager, userService database.Us
 		accessToken, err := tokenManager.GenerateJWT(strconv.Itoa(user.Id), "access", tokenManager.GetterAccessExpiresAt())
 		if err != nil {
 			log.Error("failed to generate access token", slog.String("username", req.Username), slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to generate access token")
 			return
 		}
 
 		refreshToken, err := tokenManager.GenerateJWT(strconv.Itoa(user.Id), "refresh", tokenManager.GetterRefreshExpiresAt())
 		if err != nil {
 			log.Error("failed to generate refresh token", slog.String("username", req.Username), slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to generate refresh token")
 			return
 		}
 
 		err = tokenManager.SaveRefreshToken(refreshToken)
 		if err != nil {
 			log.Error("failed to save refresh token", slog.String("username", req.Username), slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to save refresh token")
 			return
 		}
 
