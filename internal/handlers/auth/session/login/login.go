@@ -63,6 +63,7 @@ func New(log *slog.Logger, sessionManager *auth.SessionManager, userService data
 		}
 
 		_, sessionExists := sessionManager.GetSessionByUserID(strconv.Itoa(user.Id))
+		log.Debug("sessionExists", slog.Any("sessionExists", sessionExists))
 		if !errors.Is(sessionExists, sessionManager.ErrSessionNotFound) {
 			log.Error("session already exists", slog.String("username", req.Username))
 			utils.SendError(w, "session already exists")

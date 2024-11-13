@@ -48,32 +48,14 @@ func (sm *SessionManager) GetSessionByUserID(userID string) (string, error) {
 		return "", err
 	}
 
-	results := make(chan string)
-	errs := make(chan error)
-
 	for _, key := range keys {
-		key := key
-		go func() {
-			storedUserID, err := sm.cacheClient.Cache.Get(sm.cacheClient.Ctx, key).Result()
-			if errors.Is(err, redis.Nil) {
-				return
-			} else if err != nil {
-				errs <- err
-				return
-			}
-
-			if userID == storedUserID {
-				results <- key
-			}
-		}()
-	}
-
-	for range keys {
-		select {
-		case key := <-results:
-			return key, nil
-		case err := <-errs:
+		storedUserID, err := sm.cacheClient.Cache.Get(sm.cacheClient.Ctx, key).Result()
+		if err != nil {
 			return "", err
+		}
+
+		if userID == storedUserID {
+			return key, nil
 		}
 	}
 
