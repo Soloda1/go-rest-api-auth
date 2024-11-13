@@ -3,9 +3,9 @@ package jwtLogin
 import (
 	"encoding/json"
 	"github.com/go-playground/validator/v10"
-	"gocourse/internal/database"
-	"gocourse/internal/database/auth"
-	"gocourse/internal/utils"
+	"go-rest-api-auth/internal/database"
+	"go-rest-api-auth/internal/database/auth"
+	"go-rest-api-auth/internal/utils"
 	"log/slog"
 	"net/http"
 	"strconv"

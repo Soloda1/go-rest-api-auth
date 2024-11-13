@@ -3,8 +3,8 @@ package middleware
 import (
 	"context"
 	"errors"
-	"gocourse/internal/database/auth"
-	"gocourse/internal/utils"
+	"go-rest-api-auth/internal/database/auth"
+	"go-rest-api-auth/internal/utils"
 	"log/slog"
 	"net/http"
 	"strconv"

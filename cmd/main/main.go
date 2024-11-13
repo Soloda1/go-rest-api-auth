@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"gocourse/config"
-	"gocourse/internal/api"
+	"go-rest-api-auth/config"
+	"go-rest-api-auth/internal/api"
 	"log/slog"
 	"os"
 	"os/signal"

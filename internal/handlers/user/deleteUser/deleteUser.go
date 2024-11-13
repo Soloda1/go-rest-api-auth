@@ -1,8 +1,8 @@
 package deleteUser
 
 import (
-	"gocourse/internal/database"
-	"gocourse/internal/utils"
+	"go-rest-api-auth/internal/database"
+	"go-rest-api-auth/internal/utils"
 	"log/slog"
 	"net/http"
 	"strconv"

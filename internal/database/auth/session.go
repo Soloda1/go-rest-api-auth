@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"github.com/go-redis/redis/v8"
-	"gocourse/internal/database"
+	"go-rest-api-auth/internal/database"
 	"time"
 
 	"github.com/google/uuid"

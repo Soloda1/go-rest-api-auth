@@ -3,8 +3,8 @@ package createUser
 import (
 	"encoding/json"
 	"github.com/go-playground/validator/v10"
-	"gocourse/internal/database"
-	"gocourse/internal/utils"
+	"go-rest-api-auth/internal/database"
+	"go-rest-api-auth/internal/utils"
 	"log/slog"
 	"net/http"
 )

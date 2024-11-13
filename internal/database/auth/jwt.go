@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
-	"gocourse/config"
-	"gocourse/internal/database"
+	"go-rest-api-auth/config"
+	"go-rest-api-auth/internal/database"
 	"time"
 )
 

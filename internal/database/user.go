@@ -3,7 +3,7 @@ package database
 import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"gocourse/internal/utils"
+	"go-rest-api-auth/internal/utils"
 	"log/slog"
 	"strconv"
 	"strings"

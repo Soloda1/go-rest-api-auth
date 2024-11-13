@@ -1,4 +1,4 @@
-module gocourse
+module go-rest-api-auth
 
 go 1.23.2
 

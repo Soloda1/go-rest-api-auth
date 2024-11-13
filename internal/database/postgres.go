@@ -40,10 +40,7 @@ func NewDbPool(ctx context.Context, dbUrl string, log *slog.Logger) *DbPool {
 }
 
 func SetupTables(ctx context.Context, log *slog.Logger) {
-	done := make(chan bool)
-
-	go func() {
-		query := `
+	query := `
 		CREATE TABLE IF NOT EXISTS users (
 		    id serial PRIMARY KEY,
 		    username VARCHAR(30) NOT NULL UNIQUE ,
@@ -52,19 +49,15 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		    date_joined DATE DEFAULT CURRENT_DATE
 		)
 	`
-		_, err := pgInstance.Db.Exec(ctx, query)
-		if err != nil {
-			log.Debug("Failed to create user table", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
+	_, err := pgInstance.Db.Exec(ctx, query)
+	if err != nil {
+		log.Debug("Failed to create users table", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 
-		log.Info("Created user table")
-		done <- true
-	}()
+	log.Info("Created user table")
 
-	go func() {
-		<-done
-		query := `
+	query = `
 		CREATE TABLE IF NOT EXISTS posts (
 			id SERIAL PRIMARY KEY,
 			title VARCHAR(255) NOT NULL,
@@ -74,37 +67,29 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)
 	`
-		_, err := pgInstance.Db.Exec(ctx, query)
-		if err != nil {
-			log.Debug("Failed to create user table", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
+	_, err = pgInstance.Db.Exec(ctx, query)
+	if err != nil {
+		log.Debug("Failed to create user table", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 
-		log.Info("Created posts table")
-		done <- true
-	}()
+	log.Info("Created posts table")
 
-	go func() {
-		query := `
+	query = `
 		CREATE TABLE IF NOT EXISTS tags (
 			id SERIAL PRIMARY KEY,
 			name VARCHAR(50) UNIQUE NOT NULL
 		)
 	`
-		_, err := pgInstance.Db.Exec(ctx, query)
-		if err != nil {
-			log.Debug("Failed to create user table", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
+	_, err = pgInstance.Db.Exec(ctx, query)
+	if err != nil {
+		log.Debug("Failed to create user table", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 
-		log.Info("Created tags table")
-		done <- true
-	}()
+	log.Info("Created tags table")
 
-	go func() {
-		<-done
-		<-done
-		query := `
+	query = `
 		CREATE TABLE IF NOT EXISTS posts_tags (
 			post_id INTEGER NOT NULL,
 			tag_id INTEGER NOT NULL,
@@ -113,17 +98,15 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 			FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 		)
 	`
-		_, err := pgInstance.Db.Exec(ctx, query)
-		if err != nil {
-			log.Debug("Failed to create user table", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
+	_, err = pgInstance.Db.Exec(ctx, query)
+	if err != nil {
+		log.Debug("Failed to create user table", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 
-		log.Info("Created ManyToMany tags <=> posts table")
-		done <- true
-	}()
+	log.Info("Created ManyToMany tags <=> posts table")
 
-	query := `
+	query = `
 		CREATE TABLE IF NOT EXISTS refresh_tokens (
 		    id SERIAL PRIMARY KEY,
 		    user_id INTEGER NOT NULL UNIQUE ,
@@ -132,7 +115,7 @@ func SetupTables(ctx context.Context, log *slog.Logger) {
 		    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)
 	`
-	_, err := pgInstance.Db.Exec(ctx, query)
+	_, err = pgInstance.Db.Exec(ctx, query)
 	if err != nil {
 		log.Debug("Failed to create refresh_tokens table", slog.String("error", err.Error()))
 		os.Exit(1)
