@@ -15,6 +15,8 @@
 - **Docker**: Containerization of the application, allowing for easy setup, scaling, and deployment.
 - **Nginx**: Used as a reverse proxy to route incoming requests to the Go application.
 - **Swagger**: API documentation generated using the Swaggo library.
+- **Testify**: A testing library for writing unit tests in Go.
+- **Mockery**: A library for generating mocks, used alongside Testify to test components in isolation.
 
 
 ## Open Source
