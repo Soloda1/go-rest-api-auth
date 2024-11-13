@@ -9,21 +9,38 @@ import (
 	"github.com/google/uuid"
 )
 
-type SessionManager struct {
+type SessionManagerImplementation struct {
 	cacheClient        *database.CacheClient
 	Ttl                time.Duration
 	ErrSessionNotFound error
 }
 
-func NewSessionManager(cacheClient *database.CacheClient, ttl time.Duration) *SessionManager {
-	return &SessionManager{
+type SessionManager interface {
+	CreateSession(userID string) (string, error)
+	GetUserIdBySession(sessionID string) (string, error)
+	GetSessionByUserID(userID string) (string, error)
+	DeleteSession(sessionID string) error
+	GetterTtl() time.Duration
+	GetterErrSessionNotFound() error
+}
+
+func NewSessionManager(cacheClient *database.CacheClient, ttl time.Duration) SessionManager {
+	return &SessionManagerImplementation{
 		cacheClient:        cacheClient,
 		Ttl:                ttl,
 		ErrSessionNotFound: errors.New("session not found"),
 	}
 }
 
-func (sm *SessionManager) CreateSession(userID string) (string, error) {
+func (sm *SessionManagerImplementation) GetterTtl() time.Duration {
+	return sm.Ttl
+}
+
+func (sm *SessionManagerImplementation) GetterErrSessionNotFound() error {
+	return sm.ErrSessionNotFound
+}
+
+func (sm *SessionManagerImplementation) CreateSession(userID string) (string, error) {
 	sessionID := uuid.New().String()
 	err := sm.cacheClient.Cache.Set(sm.cacheClient.Ctx, sessionID, userID, sm.Ttl).Err()
 	if err != nil {
@@ -32,7 +49,7 @@ func (sm *SessionManager) CreateSession(userID string) (string, error) {
 	return sessionID, nil
 }
 
-func (sm *SessionManager) GetUserIdBySession(sessionID string) (string, error) {
+func (sm *SessionManagerImplementation) GetUserIdBySession(sessionID string) (string, error) {
 	userID, err := sm.cacheClient.Cache.Get(sm.cacheClient.Ctx, sessionID).Result()
 	if errors.Is(err, redis.Nil) {
 		return "", sm.ErrSessionNotFound
@@ -42,7 +59,7 @@ func (sm *SessionManager) GetUserIdBySession(sessionID string) (string, error) {
 	return userID, nil
 }
 
-func (sm *SessionManager) GetSessionByUserID(userID string) (string, error) {
+func (sm *SessionManagerImplementation) GetSessionByUserID(userID string) (string, error) {
 	keys, err := sm.cacheClient.Cache.Keys(sm.cacheClient.Ctx, "*").Result()
 	if err != nil {
 		return "", err
@@ -62,7 +79,7 @@ func (sm *SessionManager) GetSessionByUserID(userID string) (string, error) {
 	return "", sm.ErrSessionNotFound
 }
 
-func (sm *SessionManager) DeleteSession(sessionID string) error {
+func (sm *SessionManagerImplementation) DeleteSession(sessionID string) error {
 	err := sm.cacheClient.Cache.Del(sm.cacheClient.Ctx, sessionID).Err()
 	return err
 }

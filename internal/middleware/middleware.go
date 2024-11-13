@@ -87,7 +87,7 @@ func TestAuthMiddleware(log *slog.Logger) func(next http.Handler) http.Handler {
 	}
 }
 
-func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(next http.Handler) http.Handler {
+func JWTAuthMiddleware(log *slog.Logger, tokenManager auth.JwtManager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		log = log.With(slog.String("component", "middleware/JWTAuthMiddleware"))
 		log.Info("JWT Auth middleware enabled")
@@ -115,7 +115,7 @@ func JWTAuthMiddleware(log *slog.Logger, tokenManager *auth.JwtManager) func(nex
 	}
 }
 
-func SessionAuthMiddleware(log *slog.Logger, sessionManager *auth.SessionManager) func(next http.Handler) http.Handler {
+func SessionAuthMiddleware(log *slog.Logger, sessionManager auth.SessionManager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		log = log.With(slog.String("component", "middleware/SessionAuthMiddleware"))
 		log.Info("Session Auth middleware enabled")
@@ -130,7 +130,7 @@ func SessionAuthMiddleware(log *slog.Logger, sessionManager *auth.SessionManager
 			sessionID := cookie.Value
 			userID, err := sessionManager.GetUserIdBySession(sessionID)
 			if err != nil {
-				if errors.Is(err, sessionManager.ErrSessionNotFound) {
+				if errors.Is(err, sessionManager.GetterErrSessionNotFound()) {
 					utils.SendError(w, "Session not found")
 					return
 				} else {

@@ -15,7 +15,7 @@ type Response struct {
 	Error  string `json:"error,omitempty"`
 }
 
-func New(log *slog.Logger, tokenManager *auth.JwtManager) http.HandlerFunc {
+func New(log *slog.Logger, tokenManager auth.JwtManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("JWT  Logout user")
 

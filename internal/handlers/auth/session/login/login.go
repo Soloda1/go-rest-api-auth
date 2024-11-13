@@ -28,7 +28,7 @@ type Response struct {
 	SessionID string `json:"session_id"`
 }
 
-func New(log *slog.Logger, sessionManager *auth.SessionManager, userService database.UserService) http.HandlerFunc {
+func New(log *slog.Logger, sessionManager auth.SessionManager, userService database.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Session Login user")
 
@@ -64,7 +64,7 @@ func New(log *slog.Logger, sessionManager *auth.SessionManager, userService data
 
 		_, sessionExists := sessionManager.GetSessionByUserID(strconv.Itoa(user.Id))
 		log.Debug("sessionExists", slog.Any("sessionExists", sessionExists))
-		if !errors.Is(sessionExists, sessionManager.ErrSessionNotFound) {
+		if !errors.Is(sessionExists, sessionManager.GetterErrSessionNotFound()) {
 			log.Error("session already exists", slog.String("username", req.Username))
 			utils.SendError(w, "session already exists")
 			return
@@ -80,7 +80,7 @@ func New(log *slog.Logger, sessionManager *auth.SessionManager, userService data
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
 			Value:    sessionID,
-			Expires:  time.Now().Add(sessionManager.Ttl),
+			Expires:  time.Now().Add(sessionManager.GetterTtl()),
 			HttpOnly: true,
 		})
 

@@ -16,20 +16,26 @@ type RefreshTokenDTO struct {
 	ExpiresAt jwt.NumericDate `json:"expires_at"`
 }
 
-type JwtManager struct {
+type JwtManagerImplementation struct {
 	pg               *database.DbPool
 	secret           string
 	AccessExpiresAt  time.Duration
 	RefreshExpiresAt time.Duration
 }
 
-type CustomClaims struct {
-	jwt.RegisteredClaims
-	TokenType string `json:"token_type"`
+type JwtManager interface {
+	GenerateJWT(userId string, tokenType string, ttl time.Duration) (string, error)
+	ValidateJWT(reqToken string, expectedType string) (jwt.MapClaims, error)
+	SaveRefreshToken(refreshToken string) error
+	GetRefreshToken(userID int) (RefreshTokenDTO, error)
+	IsRefreshTokenValid(refreshToken string) (bool, error)
+	DeleteRefreshToken(userID int) error
+	GetterAccessExpiresAt() time.Duration
+	GetterRefreshExpiresAt() time.Duration
 }
 
-func NewJwtManager(cfg *config.Config, pg *database.DbPool) *JwtManager {
-	return &JwtManager{
+func NewJwtManager(cfg *config.Config, pg *database.DbPool) JwtManager {
+	return &JwtManagerImplementation{
 		pg:               pg,
 		secret:           cfg.Secret,
 		AccessExpiresAt:  cfg.AccessExpiresAt,
@@ -37,7 +43,20 @@ func NewJwtManager(cfg *config.Config, pg *database.DbPool) *JwtManager {
 	}
 }
 
-func (m *JwtManager) GenerateJWT(userId string, tokenType string, ttl time.Duration) (string, error) {
+type CustomClaims struct {
+	jwt.RegisteredClaims
+	TokenType string `json:"token_type"`
+}
+
+func (m *JwtManagerImplementation) GetterAccessExpiresAt() time.Duration {
+	return m.AccessExpiresAt
+}
+
+func (m *JwtManagerImplementation) GetterRefreshExpiresAt() time.Duration {
+	return m.RefreshExpiresAt
+}
+
+func (m *JwtManagerImplementation) GenerateJWT(userId string, tokenType string, ttl time.Duration) (string, error) {
 	expirationTime := time.Now().Add(ttl)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &CustomClaims{
@@ -51,7 +70,7 @@ func (m *JwtManager) GenerateJWT(userId string, tokenType string, ttl time.Durat
 	return token.SignedString([]byte(m.secret))
 }
 
-func (m *JwtManager) ValidateJWT(reqToken string, expectedType string) (jwt.MapClaims, error) {
+func (m *JwtManagerImplementation) ValidateJWT(reqToken string, expectedType string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(reqToken, func(token *jwt.Token) (i interface{}, err error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -77,7 +96,7 @@ func (m *JwtManager) ValidateJWT(reqToken string, expectedType string) (jwt.MapC
 	return claims, nil
 }
 
-func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
+func (m *JwtManagerImplementation) SaveRefreshToken(refreshToken string) error {
 	claims, err := m.ValidateJWT(refreshToken, "refresh")
 
 	if err != nil {
@@ -109,7 +128,7 @@ func (m *JwtManager) SaveRefreshToken(refreshToken string) error {
 	return nil
 }
 
-func (m *JwtManager) GetRefreshToken(userID int) (RefreshTokenDTO, error) {
+func (m *JwtManagerImplementation) GetRefreshToken(userID int) (RefreshTokenDTO, error) {
 	query := `SELECT id, user_id, token, expires_at FROM refresh_tokens WHERE user_id = @user_id`
 	args := pgx.NamedArgs{
 		"user_id": userID,
@@ -125,7 +144,7 @@ func (m *JwtManager) GetRefreshToken(userID int) (RefreshTokenDTO, error) {
 	return token, nil
 }
 
-func (m *JwtManager) IsRefreshTokenValid(refreshToken string) (bool, error) {
+func (m *JwtManagerImplementation) IsRefreshTokenValid(refreshToken string) (bool, error) {
 	var count int
 	query := "SELECT COUNT(*) FROM refresh_tokens WHERE token = $1"
 	err := m.pg.Db.QueryRow(m.pg.Ctx, query, refreshToken).Scan(&count)
@@ -135,7 +154,7 @@ func (m *JwtManager) IsRefreshTokenValid(refreshToken string) (bool, error) {
 	return count > 0, nil
 }
 
-func (m *JwtManager) DeleteRefreshToken(userID int) error {
+func (m *JwtManagerImplementation) DeleteRefreshToken(userID int) error {
 	query := `DELETE FROM refresh_tokens WHERE user_id = @user_id`
 	args := pgx.NamedArgs{
 		"user_id": userID,

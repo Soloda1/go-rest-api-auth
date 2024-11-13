@@ -25,7 +25,7 @@ type Response struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func New(log *slog.Logger, tokenManager *auth.JwtManager) http.HandlerFunc {
+func New(log *slog.Logger, tokenManager auth.JwtManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Refresh user's tokens")
 
@@ -78,14 +78,14 @@ func New(log *slog.Logger, tokenManager *auth.JwtManager) http.HandlerFunc {
 			return
 		}
 
-		accessToken, err := tokenManager.GenerateJWT(strconv.Itoa(userID), "access", tokenManager.AccessExpiresAt)
+		accessToken, err := tokenManager.GenerateJWT(strconv.Itoa(userID), "access", tokenManager.GetterAccessExpiresAt())
 		if err != nil {
 			log.Error("failed to generate access token", slog.String("userID", strconv.Itoa(userID)), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())
 			return
 		}
 
-		refreshToken, err := tokenManager.GenerateJWT(strconv.Itoa(userID), "refresh", tokenManager.RefreshExpiresAt)
+		refreshToken, err := tokenManager.GenerateJWT(strconv.Itoa(userID), "refresh", tokenManager.GetterRefreshExpiresAt())
 		if err != nil {
 			log.Error("failed to generate refresh token", slog.String("userID", strconv.Itoa(userID)), slog.String("error", err.Error()))
 			utils.SendError(w, err.Error())
