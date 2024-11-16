@@ -49,10 +49,10 @@
     go generate ./...
     ```
 
-3. **Api documentation**
-  ```sh
+2. **API Documentation**:
+    ```sh
     http://localhost/swagger/index.html
-  ```
+    ```
 
 
 ## Open Source
