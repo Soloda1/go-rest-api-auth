@@ -34,7 +34,7 @@ func New(log *slog.Logger, tokenManager auth.JwtManager) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			log.Error("failed to decode request body", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to decode request body")
 			return
 		}
 
@@ -42,21 +42,21 @@ func New(log *slog.Logger, tokenManager auth.JwtManager) http.HandlerFunc {
 		err = validator.New().Struct(req)
 		if err != nil {
 			log.Error("failed to validate request", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to validate request")
 			return
 		}
 
 		refreshTokenClaim, err := tokenManager.ValidateJWT(req.RefreshToken, "refresh")
 		if err != nil {
 			log.Error("failed to validate token", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to validate token")
 			return
 		}
 
 		exist, err := tokenManager.IsRefreshTokenValid(req.RefreshToken)
 		if err != nil {
 			log.Error("failed to check refresh token", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to check refresh token")
 			return
 		} else if !exist && err == nil {
 			log.Error("refresh token not found", slog.String("error", "refresh token is not valid"))
