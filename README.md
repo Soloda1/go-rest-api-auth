@@ -41,7 +41,7 @@
 
 1. **Run Unit Tests**:
     ```sh
-    go test ./...
+    go test -v ./...
     ```
 
 2. **API Documentation**:
