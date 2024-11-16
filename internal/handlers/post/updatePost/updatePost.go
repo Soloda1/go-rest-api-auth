@@ -49,7 +49,7 @@ func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 		err = json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			log.Error("failed to decode request body", slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to decode request body")
 			return
 		}
 
@@ -62,7 +62,7 @@ func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 			err = validator.New().Struct(req)
 			if err != nil {
 				log.Error("failed to validate request", slog.String("error", err.Error()))
-				utils.SendError(w, err.Error())
+				utils.SendError(w, "failed to validate request")
 				return
 			}
 		}
@@ -76,7 +76,7 @@ func New(log *slog.Logger, service database.PostService) http.HandlerFunc {
 		err = service.UpdatePost(postDto)
 		if err != nil {
 			log.Error("failed to update post", slog.String("post_id", r.PathValue("postID")), slog.String("error", err.Error()))
-			utils.SendError(w, err.Error())
+			utils.SendError(w, "failed to update post")
 			return
 		}
 
