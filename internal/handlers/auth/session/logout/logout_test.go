@@ -44,8 +44,6 @@ func TestSessionLogout(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			// Создание моков
 			mockSessionManager := new(mocks.SessionManager)
 			if tt.sessionID != "" {
 				mockSessionManager.On("DeleteSession", tt.sessionID).Return(tt.sessionManagerErr)
