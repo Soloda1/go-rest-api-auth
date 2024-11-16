@@ -18,6 +18,42 @@
 - **Testify**: A testing library for writing unit tests in Go.
 - **Mockery**: A library for generating mocks, used alongside Testify to test components in isolation.
 
+## Installation
+
+1. **Clone the Repository**:
+    ```sh
+    git clone https://github.com/Soloda1/go-rest-api-auth.git
+    cd go-rest-api-auth
+    ```
+
+2. **Set Up Environment Variables**:
+    Create a `.env` file in the root directory. You can use the `example.env` file as a template:
+    ```sh
+    cp example.env .env
+    ```
+
+3. **Build and Run the Docker Containers**:
+    ```sh
+    docker-compose up --build
+    ```
+
+## Utilities
+
+1. **Run Unit Tests**:
+    ```sh
+    go test ./...
+    ```
+
+2. **Generate Mocks**:
+    ```sh
+    go generate ./...
+    ```
+
+3. **Api documentation**
+  ```sh
+  localhost/swagger/index.html
+  ```
+
 
 ## Open Source
 This project is open source, and you are welcome to explore, use, and contribute to its development.
