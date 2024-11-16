@@ -51,7 +51,7 @@
 
 3. **Api documentation**
   ```sh
-  localhost/swagger/index.html
+    http://localhost/swagger/index.html
   ```
 
 
