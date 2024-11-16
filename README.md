@@ -44,11 +44,6 @@
     go test ./...
     ```
 
-2. **Generate Mocks**:
-    ```sh
-    go generate ./...
-    ```
-
 2. **API Documentation**:
     ```sh
     http://localhost/swagger/index.html
